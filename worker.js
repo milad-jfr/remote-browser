@@ -37,11 +37,18 @@ function gitPush(message = "update state") {
     execSync("git add state", { stdio: "ignore" });
 
     try {
-      execSync(`git commit -m "${message}"`, { stdio: "ignore" });
+      execSync(`git commit -m "${message}"`, {
+        stdio: "ignore",
+      });
     } catch {}
 
-    execSync("git pull --rebase", { stdio: "ignore" });
-    execSync("git push", { stdio: "ignore" });
+    execSync("git pull --rebase", {
+      stdio: "ignore",
+    });
+
+    execSync("git push", {
+      stdio: "ignore",
+    });
   } catch (err) {
     console.log("git push failed");
   }
@@ -67,7 +74,15 @@ async function main() {
 
   while (true) {
     try {
-      // live frame
+      // IMPORTANT:
+      // sync latest repo state
+      try {
+        execSync("git pull --rebase", {
+          stdio: "ignore",
+        });
+      } catch {}
+
+      // always refresh live image
       await page.screenshot({
         path: IMG,
         type: "jpeg",
@@ -76,8 +91,9 @@ async function main() {
 
       const cmd = safeReadJSON(CMD);
 
-      // no command
+      // no command yet
       if (!cmd) {
+        console.log("waiting for command...");
         await sleep(1000);
         continue;
       }
@@ -88,7 +104,7 @@ async function main() {
         continue;
       }
 
-      console.log("command:", cmd);
+      console.log("processing command:", cmd);
 
       let result = {
         ok: true,
@@ -168,21 +184,27 @@ async function main() {
         quality: 60,
       });
 
+      // write response
       writeJSON(RES, {
+        ok: true,
         command: cmd,
         result,
         timestamp: Date.now(),
       });
 
+      // remember command
+      lastCommandId = cmd.id || null;
+
       // mark processed
       writeJSON(CMD, {
         processed: true,
-        id: cmd.id || null,
+        id: lastCommandId,
       });
 
-      lastCommandId = cmd.id || null;
-
+      // push state
       gitPush(`command ${cmd.type}`);
+
+      console.log("command done");
     } catch (err) {
       console.log("worker loop error:", err.message);
 
