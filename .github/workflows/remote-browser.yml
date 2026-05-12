@@ -33,5 +33,10 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: Start worker
-        run: node worker.js
+      - name: Persistent runner
+        run: |
+          while true
+          do
+            node worker.js || true
+            sleep 2
+          done
