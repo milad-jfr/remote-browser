@@ -22,9 +22,7 @@ function cleanupResults(maxResults = 5) {
     .filter(file => file.endsWith(".json"))
     .sort();
 
-  if (resultJsonFiles.length <= maxResults) {
-    return;
-  }
+  if (resultJsonFiles.length <= maxResults) return;
 
   const filesToDelete = resultJsonFiles.slice(
     0,
@@ -38,16 +36,43 @@ function cleanupResults(maxResults = 5) {
     const jsonPath = path.join(RESULT_DIR, `${id}.json`);
     const imagePath = path.join(RESULT_DIR, `${id}.png`);
 
-    if (fs.existsSync(jsonPath)) {
-      fs.unlinkSync(jsonPath);
-    }
-
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
+    if (fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
+    if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
 
     console.log(`Deleted old result: ${id}`);
   }
+}
+
+async function autoScroll(page) {
+
+  await page.evaluate(async () => {
+
+    await new Promise((resolve) => {
+
+      let totalHeight = 0;
+      const distance = 500;
+
+      const timer = setInterval(() => {
+
+        const scrollHeight = document.body.scrollHeight;
+
+        window.scrollBy(0, distance);
+
+        totalHeight += distance;
+
+        if (totalHeight >= scrollHeight) {
+
+          clearInterval(timer);
+          resolve();
+
+        }
+
+      }, 300);
+
+    });
+
+  });
+
 }
 
 async function processRequest(fileName) {
@@ -87,9 +112,15 @@ async function processRequest(fileName) {
   try {
 
     await page.goto(url, {
-      waitUntil: "domcontentloaded",
-      timeout: 30000
+      waitUntil: "networkidle",
+      timeout: 60000
     });
+
+    await page.waitForTimeout(3000);
+
+    await autoScroll(page);
+
+    await page.waitForTimeout(2000);
 
     result.title = await page.title();
 
@@ -116,17 +147,9 @@ async function processRequest(fileName) {
 
   fs.unlinkSync(requestPath);
 
-  execSync("git add request result", {
-    stdio: "ignore"
-  });
-
-  execSync(`git commit -m "processed ${id}" || true`, {
-    stdio: "ignore"
-  });
-
-  execSync("git push", {
-    stdio: "ignore"
-  });
+  execSync("git add request result", { stdio: "ignore" });
+  execSync(`git commit -m "processed ${id}" || true`, { stdio: "ignore" });
+  execSync("git push", { stdio: "ignore" });
 
   console.log(`Finished: ${id}`);
 }
@@ -137,13 +160,8 @@ async function main() {
 
     try {
 
-      execSync("git fetch origin main", {
-        stdio: "ignore"
-      });
-
-      execSync("git reset --hard origin/main", {
-        stdio: "ignore"
-      });
+      execSync("git fetch origin main", { stdio: "ignore" });
+      execSync("git reset --hard origin/main", { stdio: "ignore" });
 
       const files = fs.readdirSync(REQUEST_DIR)
         .filter(file => file.endsWith(".json"))
@@ -152,12 +170,6 @@ async function main() {
       if (files.length > 0) {
 
         await processRequest(files[0]);
-
-        /*
-          restart process
-          تا اگر worker.js تغییر کرد
-          نسخه جدید load شود
-        */
 
         process.exit(0);
       }
