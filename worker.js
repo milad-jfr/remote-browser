@@ -16,19 +16,13 @@ if (!fs.existsSync(RESULT_DIR)) {
 
 console.log("Remote browser worker started");
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function cleanupResults(maxResults = 5) {
 
   const resultJsonFiles = fs.readdirSync(RESULT_DIR)
     .filter(file => file.endsWith(".json"))
     .sort();
 
-  if (resultJsonFiles.length <= maxResults) {
-    return;
-  }
+  if (resultJsonFiles.length <= maxResults) return;
 
   const filesToDelete = resultJsonFiles.slice(
     0,
@@ -42,49 +36,11 @@ function cleanupResults(maxResults = 5) {
     const jsonPath = path.join(RESULT_DIR, `${id}.json`);
     const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
 
-    if (fs.existsSync(jsonPath)) {
-      fs.unlinkSync(jsonPath);
-    }
-
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
+    if (fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
+    if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
 
     console.log(`Deleted old result: ${id}`);
   }
-}
-
-async function autoScroll(page) {
-
-  await page.evaluate(async () => {
-
-    await new Promise((resolve) => {
-
-      let totalHeight = 0;
-      const distance = 1000;
-
-      const timer = setInterval(() => {
-
-        const scrollHeight = document.body.scrollHeight;
-
-        window.scrollBy(0, distance);
-
-        totalHeight += distance;
-
-        if (totalHeight >= scrollHeight) {
-
-          clearInterval(timer);
-
-          window.scrollTo(0, 0);
-
-          resolve();
-        }
-
-      }, 250);
-
-    });
-
-  });
 }
 
 async function processRequest(fileName) {
@@ -92,40 +48,25 @@ async function processRequest(fileName) {
   const requestPath = path.join(REQUEST_DIR, fileName);
 
   const raw = fs.readFileSync(requestPath, "utf8");
-
   const request = JSON.parse(raw);
 
   const id = path.parse(fileName).name;
-
   const url = request.url;
 
   console.log(`Processing: ${id}`);
-  console.log(`URL: ${url}`);
 
   const browser = await chromium.launch({
     headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
+    args: ["--no-sandbox"]
   });
 
   const context = await browser.newContext({
-
-    viewport: {
-      width: 1920,
-      height: 1080
-    },
-
+    viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 1,
-
-    isMobile: false,
-
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    isMobile: false
   });
+
+
 
   const page = await context.newPage();
 
@@ -142,37 +83,47 @@ async function processRequest(fileName) {
   try {
 
     await page.goto(url, {
-      waitUntil: "networkidle",
-      timeout: 90000
+      waitUntil: "domcontentloaded",
+      timeout: 60000
     });
 
     await page.waitForSelector("body", {
-      timeout: 20000
+      timeout: 15000
     });
 
-    // زمان برای render اولیه
-    await sleep(3000);
+    // زمان اضافه برای render پایدارتر
+    await page.waitForTimeout(5000);
 
-    // اسکرول برای lazy-load
-    await autoScroll(page);
+    await page.evaluate(async () => {
+      await new Promise((resolve) => {
+        let totalHeight = 0;
+        const distance = 800;
 
-    // زمان برای render نهایی
-    await sleep(2000);
+        const timer = setInterval(() => {
+          window.scrollBy(0, distance);
+          totalHeight += distance;
+
+          if (totalHeight >= document.body.scrollHeight) {
+            clearInterval(timer);
+            window.scrollTo(0, 0);
+            resolve();
+          }
+        }, 200);
+      });
+    });
+
 
     result.title = await page.title();
 
     await page.screenshot({
       path: path.join(RESULT_DIR, `${id}.jpg`),
       type: "jpeg",
-      quality: 60,
+      quality: 40,
       fullPage: true
     });
 
-    console.log(`Screenshot saved: ${id}.jpg`);
 
   } catch (err) {
-
-    console.error(err);
 
     result.status = "error";
     result.error = err.message;
@@ -188,21 +139,11 @@ async function processRequest(fileName) {
 
   cleanupResults(5);
 
-  if (fs.existsSync(requestPath)) {
-    fs.unlinkSync(requestPath);
-  }
+  fs.unlinkSync(requestPath);
 
-  execSync("git add request result", {
-    stdio: "ignore"
-  });
-
-  execSync(`git commit -m "processed ${id}" || true`, {
-    stdio: "ignore"
-  });
-
-  execSync("git push", {
-    stdio: "ignore"
-  });
+  execSync("git add request result", { stdio: "ignore" });
+  execSync(`git commit -m "processed ${id}" || true`, { stdio: "ignore" });
+  execSync("git push", { stdio: "ignore" });
 
   console.log(`Finished: ${id}`);
 }
@@ -213,13 +154,8 @@ async function main() {
 
     try {
 
-      execSync("git fetch origin main", {
-        stdio: "ignore"
-      });
-
-      execSync("git reset --hard origin/main", {
-        stdio: "ignore"
-      });
+      execSync("git fetch origin main", { stdio: "ignore" });
+      execSync("git reset --hard origin/main", { stdio: "ignore" });
 
       const files = fs.readdirSync(REQUEST_DIR)
         .filter(file => file.endsWith(".json"))
@@ -238,7 +174,8 @@ async function main() {
 
     }
 
-    await sleep(5000);
+    // polling آرام‌تر و پایدارتر
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 }
 
