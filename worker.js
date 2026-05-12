@@ -3,8 +3,8 @@ import path from "path";
 import { chromium } from "playwright";
 import { execSync } from "child_process";
 
-const REQUEST_DIR = "./request";
-const RESULT_DIR = "./result";
+const REQUEST_DIR = "./requests";
+const RESULT_DIR = "./results";
 
 if (!fs.existsSync(REQUEST_DIR)) {
   fs.mkdirSync(REQUEST_DIR, { recursive: true });
