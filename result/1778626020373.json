@@ -1,9 +1,0 @@
-{
-  "id": "1778626020373",
-  "sessionId": "s1",
-  "status": "error",
-  "title": "",
-  "screenshot": "1778626020373.jpg",
-  "error": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://khodrosoft.com/\", waiting until \"networkidle\"\n",
-  "createdAt": 1778626039903
-}

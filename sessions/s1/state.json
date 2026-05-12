@@ -391,16 +391,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "__Secure-STRP",
-      "value": "AEEP7gJNgPhsyqqvsdnoE_wKDW6lT9Uq9-zS2yytv07D2QAVcQ-9qafJmqeEAQGyBJJRh09kETmeVARPdv-ZJkIoeUd-y0Ii1nxF",
-      "domain": ".google.com",
-      "path": "/",
-      "expires": 1778627481.330225,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "Strict"
-    },
-    {
       "name": "NID",
       "value": "531=iyB8Mg3GSduAPmOh-c1gRBo0p1pvmUXiUEbVMq37FvKti6pUtaxNjWSwHcpgqVeT2CKhSRe3lnE9H44CZK5fgpX7kjkX8apKcKcd1VgVQCUPS5P4mAES8PVQQ8fulmZEFmJxrxL8eJ0IuxYdfkNMQF3V2LyOuze1LY-8kbpwGtaxx0lT8jTVCpgHPiIqgw9Ym179pYL35sktyJjyTUjiZ9yKGUOzvsWsVv9dqeYgwiaKW_JbBMU",
       "domain": ".google.com",
@@ -408,6 +398,26 @@
       "expires": 1794437164.412798,
       "httpOnly": true,
       "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-STRP",
+      "value": "AEEP7gLAvBgjAqJ6ibHlvQhSVmwMWfFIjGOxWtmdt6i2r8pH4pgi_aQ6rsce-G1rICDbXMdJmKx7B7E81gGTNzVzidV9eC0WOw",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1778627514.157909,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "__Host-GAPS",
+      "value": "1:N3oYtEyqhycp6KflOjzMjd-xc78dcg:hwwiR4_URP23mVlK",
+      "domain": "accounts.google.com",
+      "path": "/",
+      "expires": 1813187217.126922,
+      "httpOnly": true,
+      "secure": true,
       "sameSite": "Lax"
     }
   ],
@@ -417,7 +427,7 @@
       "localStorage": [
         {
           "name": "sb_wiz.zpc.gws-wiz.",
-          "value": "{\"0\":[[\"golf pga championship 2026\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"zelda mineru construct amiibo\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"nyt connections answers\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"intel stocks\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"nuclear submarines\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"cruise ship hantavirus outbreak\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"solar flare northern lights\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"ohio state football uniforms\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"dutton ranch yellowstone spinoff\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"public lands\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"10711902282708409795\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+          "value": "{\"0\":[[\"california governor race\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"recalls\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"pearl abyss crimson desert patch notes\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"cavs pistons game\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"fitbit air fitness band\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"spacex rocket launch\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"el niño weather\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"polycystic ovary syndrome\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"state record largemouth bass\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"texas roadhouse menu price hike\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"16014692172882423962\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
         }
       ]
     },
