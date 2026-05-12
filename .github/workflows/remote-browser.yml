@@ -1,33 +1,46 @@
-name: Remote Browser Worker
+name: Remote Browser Runner
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   worker:
     runs-on: ubuntu-latest
     timeout-minutes: 360
-    permissions:
-      contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-      - name: Setup git
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-      - name: Install Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install deps
+      - name: Configure git
         run: |
-          npm init -y
-          npm install node-fetch@3 playwright
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
-      - name: Start Worker Loop
+      - name: Install dependencies
         run: |
-          node bridge/worker.js
+          npm install
+
+      - name: Install Playwright Chromium
+        run: |
+          npx playwright install chromium
+
+      - name: Start worker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          node worker.js
+
