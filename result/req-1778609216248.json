@@ -1,0 +1,9 @@
+{
+  "id": "req-1778609216248",
+  "url": "https://yahoo.com",
+  "status": "error",
+  "title": "",
+  "screenshot": "req-1778609216248.png",
+  "error": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://yahoo.com/\", waiting until \"load\"\n",
+  "createdAt": 1778609236824
+}
