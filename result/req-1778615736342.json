@@ -1,9 +1,0 @@
-{
-  "id": "req-1778615736342",
-  "url": "https://test.com",
-  "status": "error",
-  "title": "",
-  "screenshot": "req-1778615736342.jpg",
-  "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://test.com/\nCall log:\n  - navigating to \"https://test.com/\", waiting until \"domcontentloaded\"\n",
-  "createdAt": 1778615757450
-}
