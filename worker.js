@@ -96,8 +96,9 @@ async function processRequest(fileName) {
       path: path.join(RESULT_DIR, `${id}.jpg`),
       type: "jpeg",
       quality: 40,
-      fullPage: false
+      fullPage: true
     });
+
 
   } catch (err) {
 
