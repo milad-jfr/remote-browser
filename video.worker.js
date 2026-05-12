@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { chromium } from "playwright";
-import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
 const RESULT_DIR = "./result";
@@ -13,8 +12,6 @@ if (!fs.existsSync(REQUEST_DIR)) {
 if (!fs.existsSync(RESULT_DIR)) {
   fs.mkdirSync(RESULT_DIR, { recursive: true });
 }
-
-console.log("Video worker started");
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -57,7 +54,7 @@ async function processRequest(fileName) {
 
   const id = path.parse(fileName).name;
 
-  console.log(`Processing video debug: ${id}`);
+  console.log(`Processing video request: ${id}`);
 
   const browser = await chromium.launch({
     headless: true,
@@ -74,6 +71,7 @@ async function processRequest(fileName) {
       width: 1920,
       height: 1080
     },
+    deviceScaleFactor: 1,
     isMobile: false
   });
 
@@ -149,7 +147,7 @@ async function processRequest(fileName) {
     // =========================
 
     await page.goto(request.url, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle",
       timeout: 60000
     });
 
@@ -160,7 +158,7 @@ async function processRequest(fileName) {
     result.title = await page.title();
 
     // =========================
-    // VIDEO ELEMENT DEBUG
+    // VIDEO DEBUG
     // =========================
 
     const videoDebug = await page.evaluate(() => {
@@ -179,6 +177,14 @@ async function processRequest(fileName) {
         readyState: v.readyState,
 
         networkState: v.networkState,
+
+        paused: v.paused,
+
+        muted: v.muted,
+
+        autoplay: v.autoplay,
+
+        controls: v.controls,
 
         sources: [
           ...v.querySelectorAll("source")
@@ -293,57 +299,29 @@ async function processRequest(fileName) {
     JSON.stringify(result, null, 2)
   );
 
-  // =========================
-  // PUSH RESULT
-  // =========================
-
-  execSync("git add result", {
-    stdio: "ignore"
-  });
-
-  execSync(`git commit -m "video debug ${id}" || true`, {
-    stdio: "ignore"
-  });
-
-  execSync("git push", {
-    stdio: "ignore"
-  });
-
-  console.log(`Finished video debug: ${id}`);
+  console.log(`Finished video request: ${id}`);
 }
 
 async function main() {
 
-  while (true) {
+  const fileName = process.argv[2];
 
-    try {
+  if (!fileName) {
 
-      execSync("git fetch origin main", {
-        stdio: "ignore"
-      });
+    console.error("No request file provided");
 
-      execSync("git reset --hard origin/main", {
-        stdio: "ignore"
-      });
+    process.exit(1);
+  }
 
-      const files = fs.readdirSync(REQUEST_DIR)
-        .filter(file => file.endsWith(".json"))
-        .sort();
+  try {
 
-      if (files.length > 0) {
+    await processRequest(fileName);
 
-        await processRequest(files[0]);
+  } catch (err) {
 
-        process.exit(0);
-      }
+    console.error("Video worker failed:", err.message);
 
-    } catch (err) {
-
-      console.error("Video worker error:", err.message);
-
-    }
-
-    await sleep(5000);
+    process.exit(1);
   }
 }
 
