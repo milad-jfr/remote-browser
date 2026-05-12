@@ -1,0 +1,9 @@
+{
+  "id": "request2",
+  "url": "https://example.com",
+  "status": "success",
+  "title": "Example Domain",
+  "screenshot": "request2.png",
+  "error": null,
+  "createdAt": 1778605825497
+}
