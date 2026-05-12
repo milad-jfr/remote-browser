@@ -61,8 +61,11 @@ async function processRequest(fileName) {
   });
 
   const context = await browser.newContext({
-    viewport: null
+    viewport: { width: 1920, height: 1080 },
+    deviceScaleFactor: 1,
+    isMobile: false
   });
+
 
 
   const page = await context.newPage();
@@ -90,6 +93,25 @@ async function processRequest(fileName) {
 
     // زمان اضافه برای render پایدارتر
     await page.waitForTimeout(5000);
+
+    await page.evaluate(async () => {
+      await new Promise((resolve) => {
+        let totalHeight = 0;
+        const distance = 800;
+
+        const timer = setInterval(() => {
+          window.scrollBy(0, distance);
+          totalHeight += distance;
+
+          if (totalHeight >= document.body.scrollHeight) {
+            clearInterval(timer);
+            window.scrollTo(0, 0);
+            resolve();
+          }
+        }, 200);
+      });
+    });
+
 
     result.title = await page.title();
 
