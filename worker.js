@@ -1,209 +1,204 @@
-import { chromium } from "playwright"
-import fs from "fs"
-import path from "path"
-import { execSync } from "child_process"
+import fs from "fs";
+import { execSync } from "child_process";
+import { chromium } from "playwright";
 
-const STATE_DIR = "state"
-const CMD = path.join(STATE_DIR, "command.json")
-const RESP = path.join(STATE_DIR, "response.json")
-const IMG = path.join(STATE_DIR, "live.jpg")
+const CMD = "state/command.json";
+const RES = "state/response.json";
+const IMG = "state/live.jpg";
 
-if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR)
-
-if (!fs.existsSync(CMD)) {
-  fs.writeFileSync(CMD, JSON.stringify({ processed: true }, null, 2))
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
-if (!fs.existsSync(RESP)) {
-  fs.writeFileSync(RESP, JSON.stringify({}, null, 2))
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-function pushState() {
+function safeReadJSON(path) {
   try {
-    execSync("git add state", { stdio: "ignore" })
-    execSync('git commit -m "state update"', { stdio: "ignore" })
-    execSync("git push", { stdio: "ignore" })
-    console.log("⬆️ state pushed")
-  } catch (e) {
-    // اگر تغییری نبود یا commit خالی بود، بی‌صدا رد شو
+    if (!fs.existsSync(path)) return null;
+
+    const raw = fs.readFileSync(path, "utf8").trim();
+
+    if (!raw) return null;
+
+    return JSON.parse(raw);
+  } catch (err) {
+    console.log("invalid json ignored");
+    return null;
   }
 }
 
-;(async () => {
+function writeJSON(path, data) {
+  fs.writeFileSync(path, JSON.stringify(data, null, 2));
+}
+
+function gitPush(message = "update state") {
+  try {
+    execSync("git config user.name github-actions");
+    execSync("git config user.email github-actions@github.com");
+
+    execSync("git add state", { stdio: "ignore" });
+
+    try {
+      execSync(`git commit -m "${message}"`, { stdio: "ignore" });
+    } catch {}
+
+    execSync("git pull --rebase", { stdio: "ignore" });
+    execSync("git push", { stdio: "ignore" });
+  } catch (err) {
+    console.log("git push failed");
+  }
+}
+
+async function main() {
+  console.log("worker started");
+
   const browser = await chromium.launch({
-    headless: true
-  })
+    headless: true,
+  });
 
   const page = await browser.newPage({
-    viewport: { width: 1440, height: 900 }
-  })
+    viewport: {
+      width: 1280,
+      height: 720,
+    },
+  });
 
-  await page.goto("https://example.com", { waitUntil: "domcontentloaded" })
+  await page.goto("https://example.com");
 
-  console.log("✅ Worker started")
+  let lastCommandId = null;
 
-  // حلقه استریم تصویر
-  ;(async () => {
-    while (true) {
-      try {
-        await page.screenshot({
-          path: IMG,
-          type: "jpeg",
-          quality: 60
-        })
-
-        pushState()
-      } catch (e) {
-        console.log("stream error:", e.message)
-      }
-
-      await sleep(2000)
-    }
-  })()
-
-  // حلقه پردازش فرمان
   while (true) {
     try {
-      if (fs.existsSync(CMD)) {
-        const raw = fs.readFileSync(CMD, "utf8")
-        const cmd = JSON.parse(raw)
+      // live frame
+      await page.screenshot({
+        path: IMG,
+        type: "jpeg",
+        quality: 60,
+      });
 
-        if (cmd.processed === false) {
-          console.log("➡️ command:", cmd.type)
+      const cmd = safeReadJSON(CMD);
 
-          if (cmd.type === "navigate" && cmd.url) {
-            await page.goto(cmd.url, { waitUntil: "domcontentloaded" })
-            fs.writeFileSync(RESP, JSON.stringify({
-              ok: true,
-              type: "navigate",
-              url: cmd.url
-            }, null, 2))
-          }
-
-          else if (cmd.type === "click") {
-            await page.mouse.click(cmd.x, cmd.y)
-            fs.writeFileSync(RESP, JSON.stringify({
-              ok: true,
-              type: "click",
-              x: cmd.x,
-              y: cmd.y
-            }, null, 2))
-          }
-
-          else if (cmd.type === "hover") {
-            await page.mouse.move(cmd.x, cmd.y)
-
-            const box = await page.evaluate(({ x, y }) => {
-              const el = document.elementFromPoint(x, y)
-              if (!el) return null
-              const r = el.getBoundingClientRect()
-              return {
-                x: r.x,
-                y: r.y,
-                width: r.width,
-                height: r.height
-              }
-            }, { x: cmd.x, y: cmd.y })
-
-            fs.writeFileSync(RESP, JSON.stringify({
-              ok: true,
-              type: "hover",
-              hover: box
-            }, null, 2))
-          }
-
-          else if (cmd.type === "type" && typeof cmd.text === "string") {
-            await page.keyboard.type(cmd.text)
-            fs.writeFileSync(RESP, JSON.stringify({
-              ok: true,
-              type: "type",
-              text: cmd.text
-            }, null, 2))
-          }
-
-          else if (cmd.type === "keypress" && cmd.key) {
-            await page.keyboard.press(cmd.key)
-            fs.writeFileSync(RESP, JSON.stringify({
-              ok: true,
-              type: "keypress",
-              key: cmd.key
-            }, null, 2))
-          }
-
-          else if (cmd.type === "pick") {
-            const result = await page.evaluate(({ x, y }) => {
-              const el = document.elementFromPoint(x, y)
-              if (!el) return null
-
-              function selectorFor(element) {
-                if (element.id) return "#" + element.id
-
-                const parts = []
-                let current = element
-
-                while (current && current.nodeType === 1 && current.tagName) {
-                  let part = current.tagName.toLowerCase()
-
-                  if (current.className && typeof current.className === "string") {
-                    const classes = current.className.trim().split(/\s+/).filter(Boolean)
-                    if (classes.length) {
-                      part += "." + classes.slice(0, 2).join(".")
-                    }
-                  }
-
-                  const parent = current.parentElement
-                  if (parent) {
-                    const siblings = [...parent.children].filter(
-                      c => c.tagName === current.tagName
-                    )
-                    if (siblings.length > 1) {
-                      const index = siblings.indexOf(current) + 1
-                      part += `:nth-of-type(${index})`
-                    }
-                  }
-
-                  parts.unshift(part)
-                  current = current.parentElement
-
-                  if (parts.length >= 4) break
-                }
-
-                return parts.join(" > ")
-              }
-
-              const r = el.getBoundingClientRect()
-
-              return {
-                selector: selectorFor(el),
-                box: {
-                  x: r.x,
-                  y: r.y,
-                  width: r.width,
-                  height: r.height
-                },
-                text: (el.innerText || "").slice(0, 200)
-              }
-            }, { x: cmd.x, y: cmd.y })
-
-            fs.writeFileSync(RESP, JSON.stringify({
-              ok: true,
-              type: "pick",
-              pick: result
-            }, null, 2))
-          }
-
-          cmd.processed = true
-          fs.writeFileSync(CMD, JSON.stringify(cmd, null, 2))
-
-          pushState()
-        }
+      // no command
+      if (!cmd) {
+        await sleep(1000);
+        continue;
       }
-    } catch (e) {
-      console.log("command loop error:", e.message)
+
+      // already processed
+      if (cmd.id && cmd.id === lastCommandId) {
+        await sleep(500);
+        continue;
+      }
+
+      console.log("command:", cmd);
+
+      let result = {
+        ok: true,
+      };
+
+      // navigate
+      if (cmd.type === "navigate") {
+        await page.goto(cmd.url, {
+          waitUntil: "domcontentloaded",
+        });
+
+        result.url = page.url();
+      }
+
+      // click
+      if (cmd.type === "click") {
+        await page.mouse.click(cmd.x, cmd.y);
+
+        result.clicked = {
+          x: cmd.x,
+          y: cmd.y,
+        };
+      }
+
+      // hover
+      if (cmd.type === "hover") {
+        await page.mouse.move(cmd.x, cmd.y);
+
+        result.hovered = {
+          x: cmd.x,
+          y: cmd.y,
+        };
+      }
+
+      // type
+      if (cmd.type === "type") {
+        await page.keyboard.type(cmd.text || "");
+
+        result.typed = cmd.text || "";
+      }
+
+      // keypress
+      if (cmd.type === "keypress") {
+        await page.keyboard.press(cmd.key);
+
+        result.key = cmd.key;
+      }
+
+      // pick element
+      if (cmd.type === "pick") {
+        const data = await page.evaluate(
+          ({ x, y }) => {
+            const el = document.elementFromPoint(x, y);
+
+            if (!el) return null;
+
+            return {
+              tag: el.tagName,
+              text: (el.innerText || "").slice(0, 200),
+              id: el.id,
+              class: el.className,
+            };
+          },
+          {
+            x: cmd.x,
+            y: cmd.y,
+          }
+        );
+
+        result.element = data;
+      }
+
+      // fresh screenshot after action
+      await page.screenshot({
+        path: IMG,
+        type: "jpeg",
+        quality: 60,
+      });
+
+      writeJSON(RES, {
+        command: cmd,
+        result,
+        timestamp: Date.now(),
+      });
+
+      // mark processed
+      writeJSON(CMD, {
+        processed: true,
+        id: cmd.id || null,
+      });
+
+      lastCommandId = cmd.id || null;
+
+      gitPush(`command ${cmd.type}`);
+    } catch (err) {
+      console.log("worker loop error:", err.message);
+
+      try {
+        writeJSON(RES, {
+          ok: false,
+          error: err.message,
+          timestamp: Date.now(),
+        });
+
+        gitPush("worker error");
+      } catch {}
     }
 
-    await sleep(500)
+    await sleep(1000);
   }
-})()
+}
+
+main().catch(console.error);
