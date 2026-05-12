@@ -1,9 +1,0 @@
-{
-  "id": "req-1778612668752",
-  "url": "https://youtube.com",
-  "status": "error",
-  "title": "",
-  "screenshot": "req-1778612668752.png",
-  "error": "page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('body') to be visible\n    33 × locator resolved to hidden <body dir=\"ltr\" rounded-container=\"\">…</body>\n",
-  "createdAt": 1778612688438
-}
