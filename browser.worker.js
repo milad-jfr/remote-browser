@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { chromium } from "playwright";
-import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
 const RESULT_DIR = "./result";
@@ -18,8 +17,6 @@ if (!fs.existsSync(RESULT_DIR)) {
 if (!fs.existsSync(SESSION_DIR)) {
   fs.mkdirSync(SESSION_DIR, { recursive: true });
 }
-
-console.log("Remote browser worker started");
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -112,7 +109,7 @@ async function processRequest(fileName) {
     fs.mkdirSync(sessionPath, { recursive: true });
   }
 
-  console.log(`Processing: ${id}`);
+  console.log(`Processing browser request: ${id}`);
 
   const browser = await chromium.launch({
     headless: true,
@@ -170,7 +167,7 @@ async function processRequest(fileName) {
     if (action === "open") {
 
       await page.goto(request.url, {
-        waitUntil: "domcontentloaded",
+        waitUntil: "networkidle",
         timeout: 60000
       });
 
@@ -181,7 +178,7 @@ async function processRequest(fileName) {
       if (request.url) {
 
         await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
+          waitUntil: "networkidle",
           timeout: 60000
         });
 
@@ -234,57 +231,29 @@ async function processRequest(fileName) {
 
   cleanupResults(5);
 
-  if (fs.existsSync(requestPath)) {
-    fs.unlinkSync(requestPath);
-  }
-
-  execSync("git add request result sessions", {
-    stdio: "ignore"
-  });
-
-  execSync(`git commit -m "processed ${id}" || true`, {
-    stdio: "ignore"
-  });
-
-  execSync("git push", {
-    stdio: "ignore"
-  });
-
-  console.log(`Finished: ${id}`);
+  console.log(`Finished browser request: ${id}`);
 }
 
 async function main() {
 
-  while (true) {
+  const fileName = process.argv[2];
 
-    try {
+  if (!fileName) {
 
-      execSync("git fetch origin main", {
-        stdio: "ignore"
-      });
+    console.error("No request file provided");
 
-      execSync("git reset --hard origin/main", {
-        stdio: "ignore"
-      });
+    process.exit(1);
+  }
 
-      const files = fs.readdirSync(REQUEST_DIR)
-        .filter(file => file.endsWith(".json"))
-        .sort();
+  try {
 
-      if (files.length > 0) {
+    await processRequest(fileName);
 
-        await processRequest(files[0]);
+  } catch (err) {
 
-        process.exit(0);
-      }
+    console.error("Browser worker failed:", err.message);
 
-    } catch (err) {
-
-      console.error("Worker error:", err.message);
-
-    }
-
-    await sleep(5000);
+    process.exit(1);
   }
 }
 
