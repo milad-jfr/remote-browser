@@ -1,0 +1,9 @@
+{
+  "id": "tester",
+  "url": "https://youtube.com",
+  "status": "success",
+  "title": "YouTube",
+  "screenshot": "tester.png",
+  "error": null,
+  "createdAt": 1778606803052
+}
