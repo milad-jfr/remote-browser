@@ -37,5 +37,15 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: Run dispatcher
-        run: node dispatcher.js
+      - name: Persistent supervisor
+        run: |
+          while true
+          do
+
+            git pull --rebase origin main || true
+
+            node dispatcher.js || true
+
+            sleep 2
+
+          done
