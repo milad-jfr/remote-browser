@@ -7,11 +7,17 @@ permissions:
   contents: write
 
 jobs:
-  worker:
+
+  browser-worker:
+
+    name: Browser Worker
+
     runs-on: ubuntu-latest
+
     timeout-minutes: 360
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -33,10 +39,49 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: Persistent runner
+      - name: Run browser worker
         run: |
           while true
           do
-            node worker.js || true
+            node browser.worker.js || true
+            sleep 2
+          done
+
+  video-worker:
+
+    name: Video Worker
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 360
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Run video worker
+        run: |
+          while true
+          do
+            node video.worker.js || true
             sleep 2
           done
