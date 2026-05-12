@@ -369,9 +369,92 @@
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "ig_did",
+      "value": "4F0B38EE-47DC-4707-8BBA-6FA48E2CBEAA",
+      "domain": ".instagram.com",
+      "path": "/",
+      "expires": 1810162159.710629,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "csrftoken",
+      "value": "Fx1fl9T6D5kDZKAZ7TTFP2",
+      "domain": ".instagram.com",
+      "path": "/",
+      "expires": 1813186160.827083,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "datr",
+      "value": "cK4DatNDvAiWnuTK4Ft5Dj1j",
+      "domain": ".instagram.com",
+      "path": "/",
+      "expires": 1813186160.827157,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "mid",
+      "value": "agOucAAEAAFUNGXhG3DsLtXEswnk",
+      "domain": ".instagram.com",
+      "path": "/",
+      "expires": 1813186160.827185,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "wd",
+      "value": "1920x1080",
+      "domain": ".instagram.com",
+      "path": "/",
+      "expires": 1779230962,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.instagram.com",
+      "localStorage": [
+        {
+          "name": "chatd-deviceid",
+          "value": "bf42219f-48c2-4c34-9341-a996c762c75a"
+        },
+        {
+          "name": "hb_timestamp",
+          "value": "1778626163303"
+        },
+        {
+          "name": "IGSession",
+          "value": "t8dekz:1778627963445"
+        },
+        {
+          "name": "signal_flush_timestamp",
+          "value": "1778626163323"
+        },
+        {
+          "name": "Session",
+          "value": "y71yw5:1778626198445"
+        },
+        {
+          "name": "banzai:last_storage_flush",
+          "value": "1778626163691.7"
+        },
+        {
+          "name": "caa_feta_onetap_users_migrated",
+          "value": "true"
+        }
+      ]
+    },
     {
       "origin": "https://www.google.com",
       "localStorage": [
