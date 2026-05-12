@@ -415,7 +415,7 @@
       "value": "1920x1080",
       "domain": ".instagram.com",
       "path": "/",
-      "expires": 1779230962,
+      "expires": 1779231022,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
@@ -427,7 +427,7 @@
       "localStorage": [
         {
           "name": "chatd-deviceid",
-          "value": "bf42219f-48c2-4c34-9341-a996c762c75a"
+          "value": "94fc72e7-697c-4f75-bef5-ad58378d137c"
         },
         {
           "name": "hb_timestamp",
@@ -435,7 +435,7 @@
         },
         {
           "name": "IGSession",
-          "value": "t8dekz:1778627963445"
+          "value": "t8dekz:1778628025980"
         },
         {
           "name": "signal_flush_timestamp",
@@ -443,7 +443,7 @@
         },
         {
           "name": "Session",
-          "value": "y71yw5:1778626198445"
+          "value": "eclgjk:1778626260980"
         },
         {
           "name": "banzai:last_storage_flush",
