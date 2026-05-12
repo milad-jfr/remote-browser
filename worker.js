@@ -1,213 +1,175 @@
 import fs from "fs";
-import { execSync } from "child_process";
+import path from "path";
 import { chromium } from "playwright";
+import { execSync } from "child_process";
 
-const CMD = "state/command.json";
-const RES = "state/response.json";
-const IMG = "state/live.jpg";
+const REQUEST_DIR = "./request";
+const RESULT_DIR = "./result";
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+if (!fs.existsSync(REQUEST_DIR)) {
+  fs.mkdirSync(REQUEST_DIR, { recursive: true });
 }
 
-function safeReadJSON(path) {
-  try {
-    if (!fs.existsSync(path)) return null;
+if (!fs.existsSync(RESULT_DIR)) {
+  fs.mkdirSync(RESULT_DIR, { recursive: true });
+}
 
-    const raw = fs.readFileSync(path, "utf8").trim();
+console.log("Remote browser worker started");
 
-    if (!raw) return null;
+function cleanupResults(maxResults = 5) {
 
-    return JSON.parse(raw);
-  } catch {
-    return null;
+  const resultJsonFiles = fs.readdirSync(RESULT_DIR)
+    .filter(file => file.endsWith(".json"))
+    .sort();
+
+  if (resultJsonFiles.length <= maxResults) {
+    return;
+  }
+
+  const filesToDelete = resultJsonFiles.slice(
+    0,
+    resultJsonFiles.length - maxResults
+  );
+
+  for (const file of filesToDelete) {
+
+    const id = path.parse(file).name;
+
+    const jsonPath = path.join(RESULT_DIR, `${id}.json`);
+    const imagePath = path.join(RESULT_DIR, `${id}.png`);
+
+    if (fs.existsSync(jsonPath)) {
+      fs.unlinkSync(jsonPath);
+    }
+
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+
+    console.log(`Deleted old result: ${id}`);
   }
 }
 
-function writeJSON(path, data) {
-  fs.writeFileSync(path, JSON.stringify(data, null, 2));
-}
+async function processRequest(fileName) {
 
-function gitPush(message = "update") {
-  try {
-    execSync("git config user.name github-actions");
-    execSync("git config user.email github-actions@github.com");
+  const requestPath = path.join(REQUEST_DIR, fileName);
 
-    execSync("git add state", {
-      stdio: "ignore",
-    });
+  const raw = fs.readFileSync(requestPath, "utf8");
+  const request = JSON.parse(raw);
 
-    try {
-      execSync(`git commit -m "${message}"`, {
-        stdio: "ignore",
-      });
-    } catch {}
+  const id = path.parse(fileName).name;
+  const url = request.url;
 
-    execSync("git push", {
-      stdio: "ignore",
-    });
-  } catch (err) {
-    console.log("push failed");
-  }
-}
-
-async function main() {
-  console.log("worker started");
+  console.log(`Processing: ${id}`);
 
   const browser = await chromium.launch({
     headless: true,
+    args: ["--no-sandbox"]
   });
 
   const page = await browser.newPage({
     viewport: {
-      width: 1280,
-      height: 720,
-    },
+      width: 1440,
+      height: 900
+    }
   });
 
-  await page.goto("https://example.com");
+  const result = {
+    id,
+    url,
+    status: "success",
+    title: "",
+    screenshot: `${id}.png`,
+    error: null,
+    createdAt: Date.now()
+  };
 
-  let lastCommandId = null;
+  try {
+
+    await page.goto(url, {
+      waitUntil: "domcontentloaded",
+      timeout: 30000
+    });
+
+    result.title = await page.title();
+
+    await page.screenshot({
+      path: path.join(RESULT_DIR, `${id}.png`),
+      fullPage: true
+    });
+
+  } catch (err) {
+
+    result.status = "error";
+    result.error = err.message;
+
+  }
+
+  await browser.close();
+
+  fs.writeFileSync(
+    path.join(RESULT_DIR, `${id}.json`),
+    JSON.stringify(result, null, 2)
+  );
+
+  cleanupResults(5);
+
+  fs.unlinkSync(requestPath);
+
+  execSync("git add request result", {
+    stdio: "ignore"
+  });
+
+  execSync(`git commit -m "processed ${id}" || true`, {
+    stdio: "ignore"
+  });
+
+  execSync("git push", {
+    stdio: "ignore"
+  });
+
+  console.log(`Finished: ${id}`);
+}
+
+async function main() {
 
   while (true) {
+
     try {
-      // IMPORTANT:
-      // discard local changes
-      // so git pull can work
-      try {
-        execSync("git reset --hard", {
-          stdio: "ignore",
-        });
 
-        execSync("git pull", {
-          stdio: "ignore",
-        });
-      } catch (err) {
-        console.log("git sync failed");
-      }
-
-      const cmd = safeReadJSON(CMD);
-
-      if (!cmd) {
-        console.log("waiting for command...");
-      } else if (cmd.id === lastCommandId) {
-        console.log("already processed");
-      } else {
-        console.log("processing:", cmd);
-
-        let result = {
-          ok: true,
-        };
-
-        // navigate
-        if (cmd.type === "navigate") {
-          await page.goto(cmd.url, {
-            waitUntil: "domcontentloaded",
-          });
-
-          result.url = page.url();
-        }
-
-        // click
-        if (cmd.type === "click") {
-          await page.mouse.click(cmd.x, cmd.y);
-
-          result.clicked = {
-            x: cmd.x,
-            y: cmd.y,
-          };
-        }
-
-        // hover
-        if (cmd.type === "hover") {
-          await page.mouse.move(cmd.x, cmd.y);
-
-          result.hovered = {
-            x: cmd.x,
-            y: cmd.y,
-          };
-        }
-
-        // type
-        if (cmd.type === "type") {
-          await page.keyboard.type(cmd.text || "");
-
-          result.typed = cmd.text || "";
-        }
-
-        // keypress
-        if (cmd.type === "keypress") {
-          await page.keyboard.press(cmd.key);
-
-          result.key = cmd.key;
-        }
-
-        // pick
-        if (cmd.type === "pick") {
-          const data = await page.evaluate(
-            ({ x, y }) => {
-              const el = document.elementFromPoint(x, y);
-
-              if (!el) return null;
-
-              return {
-                tag: el.tagName,
-                text: (el.innerText || "").slice(0, 200),
-                id: el.id,
-                class: el.className,
-              };
-            },
-            {
-              x: cmd.x,
-              y: cmd.y,
-            }
-          );
-
-          result.element = data;
-        }
-
-        // screenshot after action
-        await page.screenshot({
-          path: IMG,
-          type: "jpeg",
-          quality: 60,
-        });
-
-        // response
-        writeJSON(RES, {
-          ok: true,
-          command: cmd,
-          result,
-          timestamp: Date.now(),
-        });
-
-        // mark command processed
-        lastCommandId = cmd.id;
-
-        writeJSON(CMD, {
-          processed: true,
-          id: cmd.id,
-        });
-
-        gitPush(`command ${cmd.type}`);
-
-        console.log("done");
-      }
-
-      // always keep live image fresh
-      await page.screenshot({
-        path: IMG,
-        type: "jpeg",
-        quality: 60,
+      execSync("git fetch origin main", {
+        stdio: "ignore"
       });
 
-      gitPush("live frame");
+      execSync("git reset --hard origin/main", {
+        stdio: "ignore"
+      });
+
+      const files = fs.readdirSync(REQUEST_DIR)
+        .filter(file => file.endsWith(".json"))
+        .sort();
+
+      if (files.length > 0) {
+
+        await processRequest(files[0]);
+
+        /*
+          restart process
+          تا اگر worker.js تغییر کرد
+          نسخه جدید load شود
+        */
+
+        process.exit(0);
+      }
+
     } catch (err) {
-      console.log("worker error:", err.message);
+
+      console.error("Worker error:", err.message);
+
     }
 
-    await sleep(2000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
 }
 
-main().catch(console.error);
+main();
