@@ -351,16 +351,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "__Secure-STRP",
-      "value": "AEEP7gJOroJVwCxLm9fEZMOPUs6xvz7pRj3ljj7yfeYDmKV71fXNWv0bCi9QY2Wx3KOa1iR8tQ6Q2GAiHglmqLGZH9Ps-EhvgBTw",
-      "domain": ".google.com",
-      "path": "/",
-      "expires": 1778626312.364189,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "Strict"
-    },
-    {
       "name": "NID",
       "value": "531=WZCB5JlD0s7TD3qgXf5epqan0UCx4LCU7KRlVkOwAVQOCtjofY47S3jL7y7AD-9u6hUpldUDSuPUASvmf0qvVSUj6XiMtxA65ZFxgvYvpkAWWRT6dEzJx-SljtByYadcbbqBAPbwQhMZtnXJ75U4gVKN2XKNhHSUthvAOvbVOFOXFtEdZ0-d2PgCXRmA-RRc22fM_0IEyI1Nu9CIVZjrc-qjRzhgjoQfyPe00kQasNoL_w",
       "domain": ".google.com",
@@ -426,6 +416,14 @@
       "origin": "https://www.instagram.com",
       "localStorage": [
         {
+          "name": "signal_flush_timestamp",
+          "value": "1778626163323"
+        },
+        {
+          "name": "Session",
+          "value": "eclgjk:1778626260980"
+        },
+        {
           "name": "chatd-deviceid",
           "value": "94fc72e7-697c-4f75-bef5-ad58378d137c"
         },
@@ -436,14 +434,6 @@
         {
           "name": "IGSession",
           "value": "t8dekz:1778628025980"
-        },
-        {
-          "name": "signal_flush_timestamp",
-          "value": "1778626163323"
-        },
-        {
-          "name": "Session",
-          "value": "eclgjk:1778626260980"
         },
         {
           "name": "banzai:last_storage_flush",
