@@ -34,7 +34,7 @@ function cleanupResults(maxResults = 5) {
     const id = path.parse(file).name;
 
     const jsonPath = path.join(RESULT_DIR, `${id}.json`);
-    const imagePath = path.join(RESULT_DIR, `${id}.png`);
+    const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
 
     if (fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
     if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
@@ -61,7 +61,7 @@ async function processRequest(fileName) {
   });
 
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 }
+    viewport: { width: 1280, height: 720 }
   });
 
   const page = await context.newPage();
@@ -71,7 +71,7 @@ async function processRequest(fileName) {
     url,
     status: "success",
     title: "",
-    screenshot: `${id}.png`,
+    screenshot: `${id}.jpg`,
     error: null,
     createdAt: Date.now()
   };
@@ -79,19 +79,24 @@ async function processRequest(fileName) {
   try {
 
     await page.goto(url, {
-      waitUntil: "load",
+      waitUntil: "domcontentloaded",
       timeout: 60000
     });
 
-    await page.waitForSelector("body", { timeout: 15000 });
+    await page.waitForSelector("body", {
+      timeout: 15000
+    });
 
+    // زمان اضافه برای render پایدارتر
     await page.waitForTimeout(5000);
 
     result.title = await page.title();
 
     await page.screenshot({
-      path: path.join(RESULT_DIR, `${id}.png`),
-      fullPage: true
+      path: path.join(RESULT_DIR, `${id}.jpg`),
+      type: "jpeg",
+      quality: 40,
+      fullPage: false
     });
 
   } catch (err) {
@@ -145,7 +150,8 @@ async function main() {
 
     }
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // polling آرام‌تر و پایدارتر
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 }
 
