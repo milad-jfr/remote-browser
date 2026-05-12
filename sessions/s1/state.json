@@ -291,16 +291,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "d_b",
-      "value": "1",
-      "domain": ".pornhub.com",
-      "path": "/",
-      "expires": 1778626737,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
       "name": "_ga_B39RFFWGYY",
       "value": "GS2.1.s1778625909$o2$g1$t1778625946$j23$l0$h0",
       "domain": ".pornhub.com",
@@ -348,16 +338,6 @@
       "expires": 1794177964.636022,
       "httpOnly": true,
       "secure": true,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "NID",
-      "value": "531=WZCB5JlD0s7TD3qgXf5epqan0UCx4LCU7KRlVkOwAVQOCtjofY47S3jL7y7AD-9u6hUpldUDSuPUASvmf0qvVSUj6XiMtxA65ZFxgvYvpkAWWRT6dEzJx-SljtByYadcbbqBAPbwQhMZtnXJ75U4gVKN2XKNhHSUthvAOvbVOFOXFtEdZ0-d2PgCXRmA-RRc22fM_0IEyI1Nu9CIVZjrc-qjRzhgjoQfyPe00kQasNoL_w",
-      "domain": ".google.com",
-      "path": "/",
-      "expires": 1794437164.364286,
-      "httpOnly": true,
-      "secure": false,
       "sameSite": "Lax"
     },
     {
@@ -409,9 +389,38 @@
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-STRP",
+      "value": "AEEP7gJNgPhsyqqvsdnoE_wKDW6lT9Uq9-zS2yytv07D2QAVcQ-9qafJmqeEAQGyBJJRh09kETmeVARPdv-ZJkIoeUd-y0Ii1nxF",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1778627481.330225,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "NID",
+      "value": "531=iyB8Mg3GSduAPmOh-c1gRBo0p1pvmUXiUEbVMq37FvKti6pUtaxNjWSwHcpgqVeT2CKhSRe3lnE9H44CZK5fgpX7kjkX8apKcKcd1VgVQCUPS5P4mAES8PVQQ8fulmZEFmJxrxL8eJ0IuxYdfkNMQF3V2LyOuze1LY-8kbpwGtaxx0lT8jTVCpgHPiIqgw9Ym179pYL35sktyJjyTUjiZ9yKGUOzvsWsVv9dqeYgwiaKW_JbBMU",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1794437164.412798,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "sb_wiz.zpc.gws-wiz.",
+          "value": "{\"0\":[[\"golf pga championship 2026\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"zelda mineru construct amiibo\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"nyt connections answers\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"intel stocks\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"nuclear submarines\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"cruise ship hantavirus outbreak\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"solar flare northern lights\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"ohio state football uniforms\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"dutton ranch yellowstone spinoff\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"public lands\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"10711902282708409795\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+        }
+      ]
+    },
     {
       "origin": "https://www.instagram.com",
       "localStorage": [
@@ -442,15 +451,6 @@
         {
           "name": "caa_feta_onetap_users_migrated",
           "value": "true"
-        }
-      ]
-    },
-    {
-      "origin": "https://www.google.com",
-      "localStorage": [
-        {
-          "name": "sb_wiz.zpc.gws-wiz.",
-          "value": "{\"0\":[[\"world cup football\",46,[3,143,362],{\"zh\":\"world cup football\",\"zf\":33,\"lm\":[],\"zp\":{\"gs_ssp\":\"eJzj4tDP1TcwNig0N2D0EirPL8pJUUguLVBIy88vSUrMyQEAhZsJqQ\"},\"zl\":8,\"zi\":\"FIFA World Cup — Soccer competition\"}],[\"lotr nazgul king\",46,[3,143,362],{\"zs\":\"data:image/jpeg;base64,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\",\"zi\":\"Witch-king of Angmar — Lord Of The Rings character\",\"zl\":8,\"lm\":[],\"zp\":{\"gs_ssp\":\"eJzj4tTP1TcwMsoxLjRg9BLIyS8pUshLrEovzVHIzsxLBwB96QlJ\"},\"zf\":33,\"zh\":\"lotr nazgul king\"}],[\"pocketpair\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"cruise ship hantavirus outbreak\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"water main break oakland county\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"southwest airlines customer satisfaction\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"sega super games\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"home depot lotus birdbath\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"donald trump mobile phone\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"henry bolte baseball\",46,[3,143,362],{\"zf\":33,\"zh\":\"Henry Bolte\",\"lm\":[],\"zp\":{\"gs_ssp\":\"eJzj4tVP1zc0LDapMkuyMM0zYPQSyUjNK6pUSMrPKUlVSEosTk1KzMkBANNaDBQ\"},\"zl\":8,\"zs\":\"data:image/jpeg;base64,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\",\"zi\":\"Baseball athlete\"}]],\"1\":{\"av\":\"2780828958133356556\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
         }
       ]
     },
