@@ -1,9 +1,0 @@
-{
-  "id": "req-1",
-  "url": "https://example.com",
-  "status": "success",
-  "title": "Example Domain",
-  "screenshot": "req-1.png",
-  "error": null,
-  "createdAt": 1778605820867
-}
