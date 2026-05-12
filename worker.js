@@ -43,38 +43,6 @@ function cleanupResults(maxResults = 5) {
   }
 }
 
-async function autoScroll(page) {
-
-  await page.evaluate(async () => {
-
-    await new Promise((resolve) => {
-
-      let totalHeight = 0;
-      const distance = 500;
-
-      const timer = setInterval(() => {
-
-        const scrollHeight = document.body.scrollHeight;
-
-        window.scrollBy(0, distance);
-
-        totalHeight += distance;
-
-        if (totalHeight >= scrollHeight) {
-
-          clearInterval(timer);
-          resolve();
-
-        }
-
-      }, 300);
-
-    });
-
-  });
-
-}
-
 async function processRequest(fileName) {
 
   const requestPath = path.join(REQUEST_DIR, fileName);
@@ -92,12 +60,11 @@ async function processRequest(fileName) {
     args: ["--no-sandbox"]
   });
 
-  const page = await browser.newPage({
-    viewport: {
-      width: 1440,
-      height: 900
-    }
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 }
   });
+
+  const page = await context.newPage();
 
   const result = {
     id,
@@ -112,15 +79,13 @@ async function processRequest(fileName) {
   try {
 
     await page.goto(url, {
-      waitUntil: "networkidle",
+      waitUntil: "load",
       timeout: 60000
     });
 
-    await page.waitForTimeout(3000);
+    await page.waitForSelector("body", { timeout: 15000 });
 
-    await autoScroll(page);
-
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(5000);
 
     result.title = await page.title();
 
