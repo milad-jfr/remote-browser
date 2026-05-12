@@ -61,8 +61,9 @@ async function processRequest(fileName) {
   });
 
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 }
+    viewport: null
   });
+
 
   const page = await context.newPage();
 
