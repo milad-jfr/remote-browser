@@ -4,16 +4,13 @@ import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// =========================
+// PUSH RESULTS
+// =========================
 
 function gitSync() {
-  try {
 
-    execSync("git pull --rebase origin main", {
-      stdio: "inherit"
-    });
+  try {
 
     execSync("git add .", {
       stdio: "inherit"
@@ -40,7 +37,12 @@ function gitSync() {
     console.error("git sync failed:", err.message);
 
   }
+
 }
+
+// =========================
+// PROCESS REQUEST
+// =========================
 
 async function processRequest(file) {
 
@@ -67,6 +69,10 @@ async function processRequest(file) {
 
   try {
 
+    // =========================
+    // RUN WORKER
+    // =========================
+
     if (type === "video") {
 
       execSync(`node video.worker.js "${file}"`, {
@@ -81,9 +87,19 @@ async function processRequest(file) {
 
     }
 
+    // =========================
+    // REMOVE REQUEST
+    // =========================
+
     if (fs.existsSync(requestPath)) {
+
       fs.unlinkSync(requestPath);
+
     }
+
+    // =========================
+    // PUSH RESULTS
+    // =========================
 
     gitSync();
 
@@ -92,38 +108,43 @@ async function processRequest(file) {
   } catch (err) {
 
     console.error(`worker failed for ${file}`);
+
     console.error(err.message);
 
   }
+
 }
+
+// =========================
+// MAIN
+// =========================
 
 async function main() {
 
-  while (true) {
+  try {
 
-    try {
+    const files = fs.readdirSync(REQUEST_DIR)
+      .filter(f => f.endsWith(".json"))
+      .sort();
 
-      const files = fs.readdirSync(REQUEST_DIR)
-        .filter(f => f.endsWith(".json"))
-        .sort();
+    if (files.length === 0) {
 
-      if (files.length > 0) {
+      console.log("no requests");
 
-        for (const file of files) {
+      return;
+    }
 
-          await processRequest(file);
+    for (const file of files) {
 
-        }
-
-      }
-
-    } catch (err) {
-
-      console.error("dispatcher error:", err.message);
+      await processRequest(file);
 
     }
 
-    await sleep(2000);
+  } catch (err) {
+
+    console.error("dispatcher error:", err.message);
+
+    process.exit(1);
 
   }
 
