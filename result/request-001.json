@@ -1,9 +1,0 @@
-{
-  "id": "request-001",
-  "url": "https://youtube.com",
-  "status": "success",
-  "title": "YouTube",
-  "screenshot": "request-001.png",
-  "error": null,
-  "createdAt": 1778606456328
-}

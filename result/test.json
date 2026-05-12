@@ -1,9 +1,0 @@
-{
-  "id": "test",
-  "url": "https://facebook.com",
-  "status": "success",
-  "title": "Facebook",
-  "screenshot": "test.png",
-  "error": null,
-  "createdAt": 1778606650498
-}
