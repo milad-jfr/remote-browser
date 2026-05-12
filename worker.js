@@ -46,6 +46,7 @@ function cleanupResults(maxResults = 5) {
 
     const jsonPath = path.join(RESULT_DIR, `${id}.json`);
     const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
+    const debugPath = path.join(RESULT_DIR, `${id}.debug.json`);
 
     if (fs.existsSync(jsonPath)) {
       fs.unlinkSync(jsonPath);
@@ -53,6 +54,10 @@ function cleanupResults(maxResults = 5) {
 
     if (fs.existsSync(imagePath)) {
       fs.unlinkSync(imagePath);
+    }
+
+    if (fs.existsSync(debugPath)) {
+      fs.unlinkSync(debugPath);
     }
 
     console.log(`Deleted old result: ${id}`);
@@ -153,6 +158,42 @@ async function processRequest(fileName) {
 
   const page = await context.newPage();
 
+  // =========================
+  // MEDIA DEBUG COLLECTION
+  // =========================
+
+  const mediaRequests = [];
+
+  page.on("request", req => {
+
+    try {
+
+      const reqUrl = req.url().toLowerCase();
+
+      const type = req.resourceType();
+
+      if (
+        type === "media" ||
+        reqUrl.includes(".mp4") ||
+        reqUrl.includes(".m3u8") ||
+        reqUrl.includes(".mpd") ||
+        reqUrl.includes("videoplayback") ||
+        reqUrl.includes("segment") ||
+        reqUrl.includes("playlist")
+      ) {
+
+        mediaRequests.push({
+          type,
+          method: req.method(),
+          url: req.url()
+        });
+
+      }
+
+    } catch {}
+
+  });
+
   const result = {
     id,
     sessionId,
@@ -160,12 +201,27 @@ async function processRequest(fileName) {
     title: "",
     screenshot: `${id}.jpg`,
     error: null,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+
+    // current url
+    url: "",
+
+    // video detection
+    videoDetected: false,
+    videoUrl: null,
+
+    // debug
+    mediaRequests: [],
+    videoDebug: null
   };
 
   try {
 
     const action = request.action || "open";
+
+    // =========================
+    // OPEN
+    // =========================
 
     if (action === "open") {
 
@@ -175,6 +231,10 @@ async function processRequest(fileName) {
       });
 
     }
+
+    // =========================
+    // CLICK
+    // =========================
 
     if (action === "click") {
 
@@ -200,12 +260,110 @@ async function processRequest(fileName) {
 
     await sleep(3000);
 
+    // =========================
+    // AUTO SCROLL
+    // =========================
+
     await autoScroll(page);
 
     await sleep(2000);
 
+    // =========================
+    // PAGE INFO
+    // =========================
+
     result.title = await page.title();
+
     result.url = page.url();
+
+    // =========================
+    // VIDEO DEBUG
+    // =========================
+
+    const videoDebug = await page.evaluate(() => {
+
+      const v = document.querySelector("video");
+
+      if (!v) {
+        return null;
+      }
+
+      return {
+        currentSrc: v.currentSrc || null,
+
+        src: v.src || null,
+
+        sources: [
+          ...document.querySelectorAll("video source")
+        ].map(s => s.src),
+
+        poster: v.poster || null,
+
+        readyState: v.readyState,
+
+        networkState: v.networkState
+      };
+
+    });
+
+    result.videoDebug = videoDebug;
+
+    result.mediaRequests = mediaRequests;
+
+    // =========================
+    // DETECT VIDEO URL
+    // =========================
+
+    let detectedVideoUrl = null;
+
+    if (videoDebug) {
+
+      if (
+        videoDebug.currentSrc &&
+        !videoDebug.currentSrc.startsWith("blob:")
+      ) {
+
+        detectedVideoUrl = videoDebug.currentSrc;
+
+      }
+
+      else if (
+        videoDebug.src &&
+        !videoDebug.src.startsWith("blob:")
+      ) {
+
+        detectedVideoUrl = videoDebug.src;
+
+      }
+
+      else if (
+        videoDebug.sources &&
+        videoDebug.sources.length > 0
+      ) {
+
+        const validSource = videoDebug.sources.find(
+          s => s && !s.startsWith("blob:")
+        );
+
+        if (validSource) {
+          detectedVideoUrl = validSource;
+        }
+
+      }
+
+    }
+
+    if (detectedVideoUrl) {
+
+      result.videoDetected = true;
+
+      result.videoUrl = detectedVideoUrl;
+
+    }
+
+    // =========================
+    // SCREENSHOT
+    // =========================
 
     await page.screenshot({
       path: path.join(RESULT_DIR, `${id}.jpg`),
@@ -214,6 +372,10 @@ async function processRequest(fileName) {
       fullPage: true
     });
 
+    // =========================
+    // SAVE SESSION
+    // =========================
+
     await context.storageState({
       path: statePath
     });
@@ -221,15 +383,35 @@ async function processRequest(fileName) {
   } catch (err) {
 
     result.status = "error";
+
     result.error = err.message;
 
   }
 
   await browser.close();
 
+  // =========================
+  // SAVE RESULT
+  // =========================
+
   fs.writeFileSync(
     path.join(RESULT_DIR, `${id}.json`),
     JSON.stringify(result, null, 2)
+  );
+
+  // =========================
+  // SAVE DEBUG FILE
+  // =========================
+
+  fs.writeFileSync(
+    path.join(RESULT_DIR, `${id}.debug.json`),
+    JSON.stringify({
+      id,
+      sessionId,
+      createdAt: Date.now(),
+      mediaRequests,
+      videoDebug
+    }, null, 2)
   );
 
   cleanupResults(5);
