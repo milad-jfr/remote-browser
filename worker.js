@@ -19,8 +19,7 @@ function safeReadJSON(path) {
     if (!raw) return null;
 
     return JSON.parse(raw);
-  } catch (err) {
-    console.log("invalid json ignored");
+  } catch {
     return null;
   }
 }
@@ -29,12 +28,14 @@ function writeJSON(path, data) {
   fs.writeFileSync(path, JSON.stringify(data, null, 2));
 }
 
-function gitPush(message = "update state") {
+function gitPush(message = "update") {
   try {
     execSync("git config user.name github-actions");
     execSync("git config user.email github-actions@github.com");
 
-    execSync("git add state", { stdio: "ignore" });
+    execSync("git add state", {
+      stdio: "ignore",
+    });
 
     try {
       execSync(`git commit -m "${message}"`, {
@@ -42,15 +43,11 @@ function gitPush(message = "update state") {
       });
     } catch {}
 
-    execSync("git pull --rebase", {
-      stdio: "ignore",
-    });
-
     execSync("git push", {
       stdio: "ignore",
     });
   } catch (err) {
-    console.log("git push failed");
+    console.log("push failed");
   }
 }
 
@@ -75,151 +72,141 @@ async function main() {
   while (true) {
     try {
       // IMPORTANT:
-      // sync latest repo state
+      // discard local changes
+      // so git pull can work
       try {
-        execSync("git pull --rebase", {
+        execSync("git reset --hard", {
           stdio: "ignore",
         });
-      } catch {}
 
-      // always refresh live image
-      await page.screenshot({
-        path: IMG,
-        type: "jpeg",
-        quality: 60,
-      });
+        execSync("git pull", {
+          stdio: "ignore",
+        });
+      } catch (err) {
+        console.log("git sync failed");
+      }
 
       const cmd = safeReadJSON(CMD);
 
-      // no command yet
       if (!cmd) {
         console.log("waiting for command...");
-        await sleep(1000);
-        continue;
-      }
+      } else if (cmd.id === lastCommandId) {
+        console.log("already processed");
+      } else {
+        console.log("processing:", cmd);
 
-      // already processed
-      if (cmd.id && cmd.id === lastCommandId) {
-        await sleep(500);
-        continue;
-      }
-
-      console.log("processing command:", cmd);
-
-      let result = {
-        ok: true,
-      };
-
-      // navigate
-      if (cmd.type === "navigate") {
-        await page.goto(cmd.url, {
-          waitUntil: "domcontentloaded",
-        });
-
-        result.url = page.url();
-      }
-
-      // click
-      if (cmd.type === "click") {
-        await page.mouse.click(cmd.x, cmd.y);
-
-        result.clicked = {
-          x: cmd.x,
-          y: cmd.y,
+        let result = {
+          ok: true,
         };
-      }
 
-      // hover
-      if (cmd.type === "hover") {
-        await page.mouse.move(cmd.x, cmd.y);
+        // navigate
+        if (cmd.type === "navigate") {
+          await page.goto(cmd.url, {
+            waitUntil: "domcontentloaded",
+          });
 
-        result.hovered = {
-          x: cmd.x,
-          y: cmd.y,
-        };
-      }
+          result.url = page.url();
+        }
 
-      // type
-      if (cmd.type === "type") {
-        await page.keyboard.type(cmd.text || "");
+        // click
+        if (cmd.type === "click") {
+          await page.mouse.click(cmd.x, cmd.y);
 
-        result.typed = cmd.text || "";
-      }
-
-      // keypress
-      if (cmd.type === "keypress") {
-        await page.keyboard.press(cmd.key);
-
-        result.key = cmd.key;
-      }
-
-      // pick element
-      if (cmd.type === "pick") {
-        const data = await page.evaluate(
-          ({ x, y }) => {
-            const el = document.elementFromPoint(x, y);
-
-            if (!el) return null;
-
-            return {
-              tag: el.tagName,
-              text: (el.innerText || "").slice(0, 200),
-              id: el.id,
-              class: el.className,
-            };
-          },
-          {
+          result.clicked = {
             x: cmd.x,
             y: cmd.y,
-          }
-        );
+          };
+        }
 
-        result.element = data;
+        // hover
+        if (cmd.type === "hover") {
+          await page.mouse.move(cmd.x, cmd.y);
+
+          result.hovered = {
+            x: cmd.x,
+            y: cmd.y,
+          };
+        }
+
+        // type
+        if (cmd.type === "type") {
+          await page.keyboard.type(cmd.text || "");
+
+          result.typed = cmd.text || "";
+        }
+
+        // keypress
+        if (cmd.type === "keypress") {
+          await page.keyboard.press(cmd.key);
+
+          result.key = cmd.key;
+        }
+
+        // pick
+        if (cmd.type === "pick") {
+          const data = await page.evaluate(
+            ({ x, y }) => {
+              const el = document.elementFromPoint(x, y);
+
+              if (!el) return null;
+
+              return {
+                tag: el.tagName,
+                text: (el.innerText || "").slice(0, 200),
+                id: el.id,
+                class: el.className,
+              };
+            },
+            {
+              x: cmd.x,
+              y: cmd.y,
+            }
+          );
+
+          result.element = data;
+        }
+
+        // screenshot after action
+        await page.screenshot({
+          path: IMG,
+          type: "jpeg",
+          quality: 60,
+        });
+
+        // response
+        writeJSON(RES, {
+          ok: true,
+          command: cmd,
+          result,
+          timestamp: Date.now(),
+        });
+
+        // mark command processed
+        lastCommandId = cmd.id;
+
+        writeJSON(CMD, {
+          processed: true,
+          id: cmd.id,
+        });
+
+        gitPush(`command ${cmd.type}`);
+
+        console.log("done");
       }
 
-      // fresh screenshot after action
+      // always keep live image fresh
       await page.screenshot({
         path: IMG,
         type: "jpeg",
         quality: 60,
       });
 
-      // write response
-      writeJSON(RES, {
-        ok: true,
-        command: cmd,
-        result,
-        timestamp: Date.now(),
-      });
-
-      // remember command
-      lastCommandId = cmd.id || null;
-
-      // mark processed
-      writeJSON(CMD, {
-        processed: true,
-        id: lastCommandId,
-      });
-
-      // push state
-      gitPush(`command ${cmd.type}`);
-
-      console.log("command done");
+      gitPush("live frame");
     } catch (err) {
-      console.log("worker loop error:", err.message);
-
-      try {
-        writeJSON(RES, {
-          ok: false,
-          error: err.message,
-          timestamp: Date.now(),
-        });
-
-        gitPush("worker error");
-      } catch {}
+      console.log("worker error:", err.message);
     }
 
-    await sleep(1000);
+    await sleep(2000);
   }
 }
 
