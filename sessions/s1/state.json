@@ -367,7 +367,7 @@
       "value": "EJVavCvrfts",
       "domain": ".youtube.com",
       "path": "/",
-      "expires": 1794241559.195432,
+      "expires": 1794250852.48883,
       "httpOnly": true,
       "secure": true,
       "sameSite": "None"
@@ -377,7 +377,7 @@
       "value": "CgJVUxIEGgAgDg%3D%3D",
       "domain": ".youtube.com",
       "path": "/",
-      "expires": 1794241559.195467,
+      "expires": 1794250852.488876,
       "httpOnly": true,
       "secure": true,
       "sameSite": "None"
@@ -387,7 +387,7 @@
       "value": "tz=UTC",
       "domain": ".youtube.com",
       "path": "/",
-      "expires": 1813249560.419178,
+      "expires": 1813258853.803247,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
@@ -423,6 +423,16 @@
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "GPS",
+      "value": "1",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1778700652.488742,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
@@ -431,15 +441,15 @@
       "localStorage": [
         {
           "name": "yt-remote-connected-devices",
-          "value": "{\"data\":\"[]\",\"expiration\":1778775960966,\"creation\":1778689560966}"
+          "value": "{\"data\":\"[]\",\"expiration\":1778785254351,\"creation\":1778698854351}"
         },
         {
           "name": "ytidb::LAST_RESULT_ENTRY_KEY",
-          "value": "{\"data\":{\"hasSucceededOnce\":true},\"expiration\":1781281560270,\"creation\":1778689560271}"
+          "value": "{\"data\":{\"hasSucceededOnce\":true},\"expiration\":1781290853557,\"creation\":1778698853557}"
         },
         {
           "name": "Vec0e4e5e||::yt-player::yt-player-lv",
-          "value": "{\"data\":\"{}\",\"creation\":1778689561003}"
+          "value": "{\"data\":\"{}\",\"creation\":1778698854377}"
         },
         {
           "name": "yt-remote-device-id",
