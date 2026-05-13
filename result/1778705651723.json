@@ -1,0 +1,10 @@
+{
+  "id": "1778705651723",
+  "sessionId": "default",
+  "status": "error",
+  "title": "",
+  "url": "",
+  "screenshot": "1778705651723.jpg",
+  "error": "page.evaluate: InvalidStateError: Failed to set the 'selectionStart' property on 'HTMLInputElement': The input element's type ('email') does not support selection.\n    at UtilityScript.evaluate (<anonymous>:304:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+  "createdAt": 1778705671949
+}
