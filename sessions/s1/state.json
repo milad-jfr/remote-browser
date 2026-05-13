@@ -699,20 +699,10 @@
       "value": "GA1.1.1013801375.1778673405",
       "domain": ".beeg.com",
       "path": "/",
-      "expires": 1813233944.963563,
+      "expires": 1813234030.33249,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
-    },
-    {
-      "name": "bh",
-      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIqAj8wOgciTGludXgiYP7NkdAGahncyumIDvKst6UL+/rw5w3r//32D5WJzocI",
-      "domain": ".yandex.ru",
-      "path": "/",
-      "expires": 1813233406.36309,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
     },
     {
       "name": "_ym_uid",
@@ -735,31 +725,11 @@
       "sameSite": "None"
     },
     {
-      "name": "sync_cookie_csrf",
-      "value": "223057592fake",
-      "domain": ".mc.yandex.com",
-      "path": "/",
-      "expires": 1778674006,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
       "name": "_ym_isad",
       "value": "2",
       "domain": ".beeg.com",
       "path": "/",
       "expires": 1778745407,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
-      "name": "sync_cookie_csrf",
-      "value": "2076436122fake",
-      "domain": ".mc.yandex.ru",
-      "path": "/",
-      "expires": 1778674007,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
@@ -815,26 +785,6 @@
       "sameSite": "None"
     },
     {
-      "name": "sync_cookie_csrf_secondary",
-      "value": "2164295075fake",
-      "domain": ".mc.yandex.com",
-      "path": "/",
-      "expires": 1778674007,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
-      "name": "sync_cookie_csrf_secondary",
-      "value": "1281512209fake",
-      "domain": ".mc.yandex.ru",
-      "path": "/",
-      "expires": 1778674008,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
       "name": "sync_cookie_ok_secondary",
       "value": "synced",
       "domain": ".mc.yandex.com",
@@ -876,20 +826,30 @@
     },
     {
       "name": "bh",
-      "value": "EkAiQ2hyb21pdW0iO3Y9IjE0OCIsIkhlYWRsZXNzQ2hyb21lIjt2PSIxNDgiLCJOb3QvQSlCcmFuZCI7dj0iOTkiGgN4ODYiDTE0OC4wLjc3NzguOTYqAj8wOgVMaW51eEoCNjRSWiJDaHJvbWl1bSI7dj0iMTQ4LjAuNzc3OC45NiIsIkhlYWRsZXNzQ2hyb21lIjt2PSIxNDguMC43Nzc4Ljk2IiwiTm90L0EpQnJhbmQiO3Y9Ijk5LjAuMC4wImCb0pHQBmoZ3MrpiA7yrLelC/v68OcN6//99g+Vic6HCA==",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIqAj8wOgciTGludXgiYO/SkdAGahncyumIDvKst6UL+/rw5w3r//32D5WJzocI",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813234031.312232,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "bh",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIaA3g4NiINMTQ4LjAuNzc3OC45NioCPzA6ByJMaW51eCJKAjY0UloiQ2hyb21pdW0iO3Y9IjE0OC4wLjc3NzguOTYiLCJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4LjAuNzc3OC45NiIsIk5vdC9BKUJyYW5kIjt2PSI5OS4wLjAuMCJg8NKR0AZqGdzK6YgO8qy3pQv7+vDnDev//fYPlYnOhwg=",
       "domain": ".yandex.com",
       "path": "/",
-      "expires": 1813233947,
+      "expires": 1813234032,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
     },
     {
       "name": "_ga_MQH2C0NN3E",
-      "value": "GS2.1.s1778673404$o1$g1$t1778673947$j37$l0$h0$dYdmd-cQBqWzR6AW9SZCS0a_GxzEdeDzcZA",
+      "value": "GS2.1.s1778673404$o1$g1$t1778674032$j58$l0$h0$dYdmd-cQBqWzR6AW9SZCS0a_GxzEdeDzcZA",
       "domain": ".beeg.com",
       "path": "/",
-      "expires": 1813233947.746791,
+      "expires": 1813234032.893769,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -913,7 +873,7 @@
         },
         {
           "name": "_ym31745081:0_reqNum",
-          "value": "16"
+          "value": "17"
         },
         {
           "name": "_ym_uid",
