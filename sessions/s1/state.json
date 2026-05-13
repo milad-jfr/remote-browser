@@ -5,7 +5,7 @@
       "value": "GA1.1.451137742.1778682427",
       "domain": ".beeg.com",
       "path": "/",
-      "expires": 1813260105.557172,
+      "expires": 1813260176.14586,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -456,20 +456,20 @@
     },
     {
       "name": "bh",
-      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIaA3g4NiINMTQ4LjAuNzc3OC45NioCPzA6ByJMaW51eCJKAjY0UloiQ2hyb21pdW0iO3Y9IjE0OC4wLjc3NzguOTYiLCJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4LjAuNzc3OC45NiIsIk5vdC9BKUJyYW5kIjt2PSI5OS4wLjAuMCJgy56T0AZqGdzK6YgO8qy3pQv7+vDnDev//fYPlYnOhwg=",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIaA3g4NiINMTQ4LjAuNzc3OC45NioCPzA6ByJMaW51eCJKAjY0UloiQ2hyb21pdW0iO3Y9IjE0OC4wLjc3NzguOTYiLCJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4LjAuNzc3OC45NiIsIk5vdC9BKUJyYW5kIjt2PSI5OS4wLjAuMCJgkp+T0AZqGdzK6YgO8qy3pQv7+vDnDev//fYPlYnOhwg=",
       "domain": ".yandex.com",
       "path": "/",
-      "expires": 1813260107,
+      "expires": 1813260178,
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
     },
     {
       "name": "_ga_MQH2C0NN3E",
-      "value": "GS2.1.s1778699606$o2$g1$t1778700111$j15$l0$h0$dMHcyqQZZCXSFi7dTPMxI8CG6FbAgXB8nxQ",
+      "value": "GS2.1.s1778699606$o2$g1$t1778700182$j54$l0$h0$dMHcyqQZZCXSFi7dTPMxI8CG6FbAgXB8nxQ",
       "domain": ".beeg.com",
       "path": "/",
-      "expires": 1813260111.436287,
+      "expires": 1813260182.093363,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -493,7 +493,7 @@
         },
         {
           "name": "_ym31745081:0_reqNum",
-          "value": "25"
+          "value": "26"
         },
         {
           "name": "_ym_uid",
@@ -501,7 +501,7 @@
         },
         {
           "name": "bandwidth-estimate",
-          "value": "167062368.9490175"
+          "value": "178161361.68683767"
         },
         {
           "name": "_gcl_ls",
