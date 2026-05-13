@@ -29,6 +29,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install ffmpeg
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg
+
+      - name: Install yt-dlp
+        run: |
+          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+            -o /usr/local/bin/yt-dlp
+
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
