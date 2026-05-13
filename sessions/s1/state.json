@@ -353,16 +353,6 @@
       "_crHasCrossSiteAncestor": false
     },
     {
-      "name": "GPS",
-      "value": "1",
-      "domain": ".youtube.com",
-      "path": "/",
-      "expires": 1778691359.195358,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "Lax"
-    },
-    {
       "name": "YSC",
       "value": "HUNs4AZuQog",
       "domain": ".youtube.com",
@@ -413,6 +403,26 @@
       "sameSite": "None",
       "partitionKey": "https://youtube.com",
       "_crHasCrossSiteAncestor": false
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.565587453.1778698838",
+      "domain": ".wordpress.org",
+      "path": "/",
+      "expires": 1813258837.83006,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_CG6GJ50G8J",
+      "value": "GS2.1.s1778698837$o1$g0$t1778698840$j57$l0$h0",
+      "domain": ".wordpress.org",
+      "path": "/",
+      "expires": 1813258840.651097,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
