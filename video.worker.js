@@ -242,24 +242,51 @@ async function detectMainVideo(page, pageUrl) {
 
 }
 
-async function downloadFullVideo(mediaUrl, outputTemplate) {
+async function getVideoDuration(url) {
 
-  const cmd = `
-yt-dlp \
--f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
---merge-output-format mp4 \
---no-playlist \
--o "${outputTemplate}" \
-"${mediaUrl}"
+  try {
+
+    const cmd = `
+yt-dlp --dump-json "${url}"
 `;
 
-  console.log(cmd);
+    const output =
+      execSync(cmd, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"]
+      });
 
-  execSync(cmd, {
-    stdio: "inherit"
-  });
+    const json =
+      JSON.parse(output);
+
+    return Number(json.duration || 60);
+
+  } catch {
+
+    return 60;
+
+  }
 
 }
+
+    async function downloadFullVideo(mediaUrl, outputTemplate) {
+
+      const cmd = `
+    yt-dlp \
+    -f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
+    --merge-output-format mp4 \
+    -o "${outputTemplate}" \
+    "${mediaUrl}"
+    `;
+
+      console.log(cmd);
+
+      execSync(cmd, {
+        stdio: "inherit"
+      });
+
+    }
+
 
 async function processRequest(fileName) {
 
@@ -350,6 +377,7 @@ async function processRequest(fileName) {
       mediaUrl,
       outputTemplate
     );
+
 
     const files =
       fs.readdirSync(tempDir);
