@@ -1,9 +1,14 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import { chromium } from "playwright";
 
 const REQUEST_DIR = "./request";
 const RESULT_DIR = "./result";
+
+const OWNER = "milad-jfr";
+const REPO = "remote-browser";
+const BRANCH = "main";
 
 if (!fs.existsSync(REQUEST_DIR)) {
   fs.mkdirSync(REQUEST_DIR, { recursive: true });
@@ -12,10 +17,6 @@ if (!fs.existsSync(REQUEST_DIR)) {
 if (!fs.existsSync(RESULT_DIR)) {
   fs.mkdirSync(RESULT_DIR, { recursive: true });
 }
-
-const OWNER = "milad-jfr";
-const REPO = "remote-browser";
-const BRANCH = "main";
 
 function sanitize(name) {
 
@@ -88,6 +89,222 @@ function chunkFile(filePath, chunkSizeMB = 90) {
 
 }
 
+async function detectMainVideo(page, pageUrl) {
+
+  const mediaRequests = [];
+
+  page.on("response", async (response) => {
+
+    try {
+
+      const url = response.url();
+
+      const lower =
+        url.toLowerCase();
+
+      const isMedia =
+        lower.includes(".m3u8") ||
+        lower.includes(".mp4") ||
+        lower.includes("playlist") ||
+        lower.includes("master.m3u8") ||
+        lower.includes("video");
+
+      if (!isMedia) {
+        return;
+      }
+
+      const headers =
+        response.headers();
+
+      const contentType =
+        headers["content-type"] || "";
+
+      if (
+        contentType.includes("video") ||
+        lower.includes(".m3u8") ||
+        lower.includes(".mp4")
+      ) {
+
+        mediaRequests.push({
+          url,
+          time: Date.now()
+        });
+
+        console.log("MEDIA:", url);
+
+      }
+
+    } catch (err) {
+
+      console.log(err.message);
+
+    }
+
+  });
+
+  await page.goto(pageUrl, {
+    waitUntil: "domcontentloaded",
+    timeout: 120000
+  });
+
+  await page.waitForTimeout(3000);
+
+  try {
+
+    const playSelectors = [
+      "video",
+      ".play",
+      ".playButton",
+      ".vjs-big-play-button",
+      "[aria-label='Play']",
+      ".jw-icon-playback"
+    ];
+
+    for (const selector of playSelectors) {
+
+      const el =
+        await page.$(selector);
+
+      if (el) {
+
+        console.log("Clicking:", selector);
+
+        await el.click({
+          force: true
+        });
+
+        break;
+
+      }
+
+    }
+
+  } catch (err) {
+
+    console.log(
+      "Play click failed:",
+      err.message
+    );
+
+  }
+
+  await page.waitForTimeout(10000);
+
+  if (!mediaRequests.length) {
+
+    throw new Error(
+      "No media streams detected"
+    );
+
+  }
+
+  // حذف تبلیغات احتمالی
+  const filtered =
+    mediaRequests.filter((item) => {
+
+      const url =
+        item.url.toLowerCase();
+
+      if (
+        url.includes("ads") ||
+        url.includes("doubleclick") ||
+        url.includes("vast") ||
+        url.includes("promo") ||
+        url.includes("advert")
+      ) {
+
+        return false;
+
+      }
+
+      return true;
+
+    });
+
+  if (!filtered.length) {
+
+    throw new Error(
+      "Only ad streams detected"
+    );
+
+  }
+
+  // آخرین stream معمولا ویدئوی اصلی است
+  const selected =
+    filtered[filtered.length - 1];
+
+  console.log(
+    "SELECTED MEDIA:",
+    selected.url
+  );
+
+  return selected.url;
+
+}
+
+async function getVideoDuration(url) {
+
+  try {
+
+    const cmd = `
+yt-dlp --dump-json "${url}"
+`;
+
+    const output =
+      execSync(cmd, {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"]
+      });
+
+    const json =
+      JSON.parse(output);
+
+    return Number(json.duration || 60);
+
+  } catch {
+
+    return 60;
+
+  }
+
+}
+
+async function downloadSample(mediaUrl, outputTemplate) {
+
+  const duration =
+    await getVideoDuration(mediaUrl);
+
+  const sampleDuration =
+    Math.max(
+      10,
+      Math.floor(duration * 0.05)
+    );
+
+  console.log(
+    "Duration:",
+    duration,
+    "Sample:",
+    sampleDuration
+  );
+
+  const cmd = `
+yt-dlp \
+-f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
+--download-sections "*0-${sampleDuration}" \
+--force-keyframes-at-cuts \
+--merge-output-format mp4 \
+-o "${outputTemplate}" \
+"${mediaUrl}"
+`;
+
+  console.log(cmd);
+
+  execSync(cmd, {
+    stdio: "inherit"
+  });
+
+}
+
 async function processRequest(fileName) {
 
   const requestPath =
@@ -103,10 +320,12 @@ async function processRequest(fileName) {
 
   const result = {
     success: false,
-    title: null,
+    mediaUrl: null,
     downloads: [],
     error: null
   };
+
+  let browser;
 
   try {
 
@@ -126,40 +345,72 @@ async function processRequest(fileName) {
       recursive: true
     });
 
+    browser =
+      await chromium.launch({
+        headless: true
+      });
+
+    const context =
+      await browser.newContext({
+        viewport: {
+          width: 1280,
+          height: 720
+        }
+      });
+
+    const page =
+      await context.newPage();
+
+    // مخصوص beeg
+    if (
+      request.url.includes("beeg.com")
+    ) {
+
+      await page.goto(request.url, {
+        waitUntil: "domcontentloaded",
+        timeout: 120000
+      });
+
+      await page.waitForTimeout(5000);
+
+    }
+
+    const mediaUrl =
+      await detectMainVideo(
+        page,
+        request.url
+      );
+
+    result.mediaUrl =
+      mediaUrl;
+
     const outputTemplate =
       path.join(
         tempDir,
         `${id}.%(ext)s`
       );
 
-    // دانلود اجباری کیفیت پایین
-    const cmd = `
-yt-dlp \
--f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
---merge-output-format mp4 \
---no-playlist \
--o "${outputTemplate}" \
-"${request.url}"
-`;
-
-    console.log("Running yt-dlp...");
-    console.log(cmd);
-
-    execSync(cmd, {
-      stdio: "inherit"
-    });
+    await downloadSample(
+      mediaUrl,
+      outputTemplate
+    );
 
     const files =
       fs.readdirSync(tempDir);
 
     if (!files.length) {
 
-      throw new Error("Download failed");
+      throw new Error(
+        "No output files"
+      );
 
     }
 
     const downloadedFile =
-      path.join(tempDir, files[0]);
+      path.join(
+        tempDir,
+        files[0]
+      );
 
     const finalName =
       `${id}-${sanitize(files[0])}`;
@@ -201,9 +452,18 @@ yt-dlp \
 
     console.error(err);
 
-    result.error = err.message;
+    result.error =
+      err.message;
 
   }
+
+  try {
+
+    if (browser) {
+      await browser.close();
+    }
+
+  } catch {}
 
   fs.writeFileSync(
     path.join(
