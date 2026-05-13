@@ -487,7 +487,7 @@
       "value": "PgeJZaAUnww",
       "domain": ".youtube.com",
       "path": "/",
-      "expires": 1794210756.795708,
+      "expires": 1794210780.263249,
       "httpOnly": true,
       "secure": true,
       "sameSite": "None"
@@ -497,7 +497,7 @@
       "value": "CgJVUxIEGgAgTw%3D%3D",
       "domain": ".youtube.com",
       "path": "/",
-      "expires": 1794210756.795733,
+      "expires": 1794210780.263305,
       "httpOnly": true,
       "secure": true,
       "sameSite": "None"
@@ -507,7 +507,7 @@
       "value": "tz=UTC",
       "domain": ".youtube.com",
       "path": "/",
-      "expires": 1813218758.167981,
+      "expires": 1813218781.556518,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
@@ -523,6 +523,16 @@
       "sameSite": "None",
       "partitionKey": "https://youtube.com",
       "_crHasCrossSiteAncestor": false
+    },
+    {
+      "name": "CONSISTENCY",
+      "value": "AHzIXrwmSvIVZqx5qY8um0VS4eMqeSQwEEUpWrKia8RBZl4LjtXrAD_fecsRZnUYFFNa0b3RgJgZ0v5wORLubps0O4BGk0M9pkhigVdmwrcUoIpjmvRKvks",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1778659384,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
@@ -531,15 +541,15 @@
       "localStorage": [
         {
           "name": "yt-remote-connected-devices",
-          "value": "{\"data\":\"[]\",\"expiration\":1778745158659,\"creation\":1778658758659}"
+          "value": "{\"data\":\"[]\",\"expiration\":1778745182049,\"creation\":1778658782049}"
         },
         {
           "name": "V3f3c1597||::yt-player::yt-player-lv",
-          "value": "{\"data\":\"{}\",\"creation\":1778658758702}"
+          "value": "{\"data\":\"{}\",\"creation\":1778658782096}"
         },
         {
           "name": "ytidb::LAST_RESULT_ENTRY_KEY",
-          "value": "{\"data\":{\"hasSucceededOnce\":true},\"expiration\":1781250757974,\"creation\":1778658757974}"
+          "value": "{\"data\":{\"hasSucceededOnce\":true},\"expiration\":1781250781314,\"creation\":1778658781314}"
         },
         {
           "name": "yt-remote-device-id",
