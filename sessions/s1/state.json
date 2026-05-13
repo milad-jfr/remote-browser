@@ -409,17 +409,7 @@
       "value": "GA1.1.565587453.1778698838",
       "domain": ".wordpress.org",
       "path": "/",
-      "expires": 1813258845.394428,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "_ga_CG6GJ50G8J",
-      "value": "GS2.1.s1778698837$o1$g1$t1778698848$j49$l0$h0",
-      "domain": ".wordpress.org",
-      "path": "/",
-      "expires": 1813258848.2153,
+      "expires": 1813258875.437943,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -432,6 +422,16 @@
       "expires": 1778700652.488742,
       "httpOnly": true,
       "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_CG6GJ50G8J",
+      "value": "GS2.1.s1778698837$o1$g1$t1778698878$j19$l0$h0",
+      "domain": ".wordpress.org",
+      "path": "/",
+      "expires": 1813258878.270379,
+      "httpOnly": false,
+      "secure": false,
       "sameSite": "Lax"
     }
   ],
