@@ -1,0 +1,9 @@
+{
+  "id": "1778657718926",
+  "sessionId": "s1",
+  "status": "error",
+  "title": "",
+  "screenshot": "1778657718926.jpg",
+  "error": "page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://yahoo.com/\", waiting until \"networkidle\"\n",
+  "createdAt": 1778657739705
+}
