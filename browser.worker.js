@@ -5,7 +5,6 @@ import { chromium } from "playwright";
 const REQUEST_DIR = "./request";
 const RESULT_DIR = "./result";
 const SESSION_DIR = "./sessions";
-const KEYBOARD_FILE = "./keyboard.txt";
 
 if (!fs.existsSync(REQUEST_DIR)) {
   fs.mkdirSync(REQUEST_DIR, { recursive: true });
@@ -58,14 +57,15 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
+  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
+  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
-
       if (bodyExists > 0) {
         return true;
       }
@@ -87,25 +87,18 @@ async function autoScroll(page) {
       await new Promise((resolve) => {
         let totalHeight = 0;
         const distance = 1000;
-
         const timer = setInterval(() => {
           try {
-            const scrollHeight = document.body
-              ? document.body.scrollHeight
-              : 0;
-
+            const scrollHeight = document.body ? document.body.scrollHeight : 0;
             window.scrollBy(0, distance);
-
             totalHeight += distance;
 
             if (totalHeight >= scrollHeight) {
               clearInterval(timer);
-
               window.scrollTo(0, 0);
-
               resolve();
             }
-          } catch (_) {
+          } catch (e) {
             clearInterval(timer);
             resolve();
           }
@@ -118,19 +111,13 @@ async function autoScroll(page) {
 }
 
 async function processRequest(fileName) {
-
   const requestPath = path.join(REQUEST_DIR, fileName);
-
   const raw = fs.readFileSync(requestPath, "utf8");
-
   const request = JSON.parse(raw);
 
   const id = path.parse(fileName).name;
-
   const sessionId = request.sessionId || "default";
-
   const sessionPath = path.join(SESSION_DIR, sessionId);
-
   const statePath = path.join(sessionPath, "state.json");
 
   if (!fs.existsSync(sessionPath)) {
@@ -186,24 +173,10 @@ async function processRequest(fileName) {
   };
 
   try {
-
     const action = request.action || "open";
-
     const targetUrl = request.url;
 
-    let keyboardText = null;
-
-    if (fs.existsSync(KEYBOARD_FILE)) {
-      try {
-        keyboardText = fs.readFileSync(
-          KEYBOARD_FILE,
-          "utf8"
-        ).trim();
-      } catch (_) {}
-    }
-
     if (action === "open") {
-
       if (!targetUrl) {
         throw new Error("Missing request.url for open action");
       }
@@ -215,7 +188,6 @@ async function processRequest(fileName) {
     }
 
     if (action === "click") {
-
       if (request.url) {
         await page.goto(request.url, {
           waitUntil: "domcontentloaded",
@@ -225,214 +197,27 @@ async function processRequest(fileName) {
 
       await sleep(1500);
 
-      if (
-        typeof request.x !== "number" ||
-        typeof request.y !== "number"
-      ) {
+      if (typeof request.x !== "number" || typeof request.y !== "number") {
         throw new Error("Missing click coordinates");
       }
 
-      await page.mouse.click(
-        request.x,
-        request.y
-      );
-
+      await page.mouse.click(request.x, request.y);
       await sleep(2500);
     }
 
-    if (action === "rightclick") {
-
-      if (
-        typeof request.x !== "number" ||
-        typeof request.y !== "number"
-      ) {
-        throw new Error("Missing right click coordinates");
-      }
-
-      await page.mouse.click(
-        request.x,
-        request.y,
-        {
-          button: "right"
-        }
-      );
-
-      await sleep(1500);
-    }
-
-    if (action === "mousemove") {
-
-      if (
-        typeof request.x !== "number" ||
-        typeof request.y !== "number"
-      ) {
-        throw new Error("Missing mouse move coordinates");
-      }
-
-      await page.mouse.move(
-        request.x,
-        request.y
-      );
-
-      await sleep(300);
-    }
-
-    if (action === "mousedown") {
-
-      await page.mouse.down();
-
-      await sleep(300);
-    }
-
-    if (action === "mouseup") {
-
-      await page.mouse.up();
-
-      await sleep(300);
-    }
-
-    if (action === "scroll") {
-
-      const deltaY =
-        typeof request.deltaY === "number"
-          ? request.deltaY
-          : 1000;
-
-      await page.mouse.wheel(0, deltaY);
-
-      await sleep(1000);
-    }
-
-    if (action === "type") {
-
-      const text = request.text || "";
-
-      await page.keyboard.type(text, {
-        delay: 20
-      });
-
-      await sleep(500);
-    }
-
-    if (action === "keypress") {
-
-      const key = request.key;
-
-      if (!key) {
-        throw new Error("Missing key");
-      }
-
-      await page.keyboard.press(key);
-
-      await sleep(500);
-    }
-
-    if (action === "hotkey") {
-
-      const keys = request.keys;
-
-      if (
-        !Array.isArray(keys) ||
-        keys.length === 0
-      ) {
-        throw new Error("Missing hotkey keys");
-      }
-
-      for (const key of keys) {
-        await page.keyboard.down(key);
-      }
-
-      const lastKey = keys[keys.length - 1];
-
-      await page.keyboard.press(lastKey);
-
-      for (const key of [...keys].reverse()) {
-        await page.keyboard.up(key);
-      }
-
-      await sleep(500);
-    }
-
-    if (action === "paste") {
-
-      if (!keyboardText) {
-        throw new Error("Keyboard file empty");
-      }
-
-      try {
-
-        await page.evaluate(async (text) => {
-
-          try {
-            await navigator.clipboard.writeText(text);
-          } catch (_) {}
-
-          try {
-
-            window.__REMOTE_BROWSER_CLIPBOARD__ = text;
-
-            document.addEventListener(
-              "paste",
-              (e) => {
-
-                try {
-
-                  e.clipboardData.setData(
-                    "text/plain",
-                    window.__REMOTE_BROWSER_CLIPBOARD__
-                  );
-
-                } catch (_) {}
-
-              },
-              true
-            );
-
-          } catch (_) {}
-
-        }, keyboardText);
-
-      } catch (_) {}
-
-      const modifier =
-        process.platform === "darwin"
-          ? "Meta"
-          : "Control";
-
-      await page.keyboard.down(modifier);
-
-      await page.keyboard.press("V");
-
-      await page.keyboard.up(modifier);
-
-      await sleep(1500);
-    }
-
-    const ready = await waitForPageReady(
-      page,
-      15000
-    );
-
+    const ready = await waitForPageReady(page, 15000);
     if (!ready) {
-      console.log(
-        "Body not fully ready, continuing with fallback..."
-      );
+      console.log("Body not fully ready, continuing with fallback...");
     }
 
     await sleep(2000);
 
+    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page
-        .locator("body")
-        .first()
-        .waitFor({
-          timeout: 5000,
-          state: "attached"
-        });
+      await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
     } catch (_) {}
 
     await autoScroll(page);
-
     await sleep(1500);
 
     try {
@@ -448,10 +233,7 @@ async function processRequest(fileName) {
     }
 
     await page.screenshot({
-      path: path.join(
-        RESULT_DIR,
-        `${id}.jpg`
-      ),
+      path: path.join(RESULT_DIR, `${id}.jpg`),
       type: "jpeg",
       quality: 60,
       fullPage: true
@@ -462,52 +244,34 @@ async function processRequest(fileName) {
     });
 
   } catch (err) {
-
     result.status = "error";
-
     result.error = err.message;
   }
 
   await browser.close();
 
   fs.writeFileSync(
-    path.join(
-      RESULT_DIR,
-      `${id}.json`
-    ),
+    path.join(RESULT_DIR, `${id}.json`),
     JSON.stringify(result, null, 2)
   );
 
   cleanupResults(5);
 
-  console.log(
-    `Finished browser request: ${id}`
-  );
+  console.log(`Finished browser request: ${id}`);
 }
 
 async function main() {
-
   const fileName = process.argv[2];
 
   if (!fileName) {
-    console.error(
-      "No request file provided"
-    );
-
+    console.error("No request file provided");
     process.exit(1);
   }
 
   try {
-
     await processRequest(fileName);
-
   } catch (err) {
-
-    console.error(
-      "Browser worker failed:",
-      err.message
-    );
-
+    console.error("Browser worker failed:", err.message);
     process.exit(1);
   }
 }
