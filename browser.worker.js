@@ -57,12 +57,10 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
-  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
-  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
@@ -206,60 +204,24 @@ async function processRequest(fileName) {
     }
 
     if (action === "type") {
-      if (request.url) {
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
-      }
-
-      await sleep(1500);
+      await sleep(1000);
 
       if (!request.text) {
         throw new Error("Missing text for type action");
       }
 
-      await page.keyboard.type(request.text, {
-        delay: 20
-      });
-
+      await page.keyboard.type(request.text, { delay: 20 });
       await sleep(1500);
     }
 
     if (action === "paste_text") {
-      if (request.url) {
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
-      }
-
-      await sleep(1500);
+      await sleep(1000);
 
       if (!request.text) {
         throw new Error("Missing text for paste_text action");
       }
 
-      // ** کلید اصلی تغییر اینجاست: استفاده از Clipboard API و Ctrl+V واقعی **
-      await page.evaluate(async (text) => {
-        // در صورت نیاز می‌توانید قبل از paste input را فوکوس کنید
-        const el = document.activeElement;
-        if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) {
-          el.focus();
-        }
-        await navigator.clipboard.writeText(text);
-      }, request.text);
-
-      await sleep(500); // کمی صبر برای کپی شدن در clipboard
-
-      // شبیه‌سازی کلیدهای واقعی Ctrl+V (در مک Meta+V)
-      const isMac = process.platform === "darwin";
-      if (isMac) {
-        await page.keyboard.press("Meta+V");
-      } else {
-        await page.keyboard.press("Control+V");
-      }
-
+      await page.keyboard.insertText(request.text);
       await sleep(1500);
     }
 
@@ -270,7 +232,6 @@ async function processRequest(fileName) {
 
     await sleep(2000);
 
-    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
       await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
     } catch (_) {}
