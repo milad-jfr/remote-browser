@@ -766,10 +766,10 @@
     },
     {
       "name": "__Secure-STRP",
-      "value": "AEEP7gLtjikyJ1FTxyqwCrENNpZaJcwO2jvEQmyblepXUCaqf7LNV_0YQZA74S9iuvgCT4kUELSNJEj7uNdD9ziH8sNNfeBo7kLD",
+      "value": "AEEP7gJ_VC1kM0Tgy7WElauZSA05LXUOIRKmLJljhwcnGKnErGlRPKJ_LhezBB5OqPK0FU90Q4PRt7HX6JZkC2MzbfgesxcJnRzH",
       "domain": ".google.com",
       "path": "/",
-      "expires": 1778704852.78434,
+      "expires": 1778704866.358976,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Strict"
@@ -781,7 +781,7 @@
       "localStorage": [
         {
           "name": "sb_wiz.zpc.gws-wiz.",
-          "value": "{\"0\":[[\"warren buffett stock market warning\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"canvas hackers ransom\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"hybe geffen girl group saint satine\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"xbox game pass discord nitro games\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"san diego padres vs brewers prediction\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"hantavirus outbreak cruise ship\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"bob dylan ed sullivan show\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"austrian jets intercept us aircraft\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"java edition friends list\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"ford vs chevrolet reliability comparison\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"3329950867319399258\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+          "value": "{\"0\":[[\"social security cola 2027\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"2028 presidential candidates\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"project hail mary movie streaming\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"cruise ship hantavirus outbreak\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"sega super games\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"unc basketball transfer portal\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"asteroid 2026 jh2 earth approach\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"tom kean jr missed votes\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"hannah harper american idol finale\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"apple ios 26.5 update\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}]],\"1\":{\"av\":\"12323087161175574189\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
         }
       ]
     },
