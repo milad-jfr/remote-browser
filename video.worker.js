@@ -242,57 +242,13 @@ async function detectMainVideo(page, pageUrl) {
 
 }
 
-async function getVideoDuration(url) {
-
-  try {
-
-    const cmd = `
-yt-dlp --dump-json "${url}"
-`;
-
-    const output =
-      execSync(cmd, {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"]
-      });
-
-    const json =
-      JSON.parse(output);
-
-    return Number(json.duration || 60);
-
-  } catch {
-
-    return 60;
-
-  }
-
-}
-
-async function downloadSample(mediaUrl, outputTemplate) {
-
-  const duration =
-    await getVideoDuration(mediaUrl);
-
-  const sampleDuration =
-    Math.max(
-      10,
-      Math.floor(duration * 0.05)
-    );
-
-  console.log(
-    "Duration:",
-    duration,
-    "Sample:",
-    sampleDuration
-  );
+async function downloadFullVideo(mediaUrl, outputTemplate) {
 
   const cmd = `
 yt-dlp \
 -f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
---download-sections "*0-${sampleDuration}" \
---force-keyframes-at-cuts \
 --merge-output-format mp4 \
+--no-playlist \
 -o "${outputTemplate}" \
 "${mediaUrl}"
 `;
@@ -390,7 +346,7 @@ async function processRequest(fileName) {
         `${id}.%(ext)s`
       );
 
-    await downloadSample(
+    await downloadFullVideo(
       mediaUrl,
       outputTemplate
     );
