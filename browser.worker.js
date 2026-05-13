@@ -57,14 +57,15 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
+  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
+  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
-
       if (bodyExists > 0) {
         return true;
       }
@@ -86,15 +87,10 @@ async function autoScroll(page) {
       await new Promise((resolve) => {
         let totalHeight = 0;
         const distance = 1000;
-
         const timer = setInterval(() => {
           try {
-            const scrollHeight = document.body
-              ? document.body.scrollHeight
-              : 0;
-
+            const scrollHeight = document.body ? document.body.scrollHeight : 0;
             window.scrollBy(0, distance);
-
             totalHeight += distance;
 
             if (totalHeight >= scrollHeight) {
@@ -116,17 +112,12 @@ async function autoScroll(page) {
 
 async function processRequest(fileName) {
   const requestPath = path.join(REQUEST_DIR, fileName);
-
   const raw = fs.readFileSync(requestPath, "utf8");
-
   const request = JSON.parse(raw);
 
   const id = path.parse(fileName).name;
-
   const sessionId = request.sessionId || "default";
-
   const sessionPath = path.join(SESSION_DIR, sessionId);
-
   const statePath = path.join(sessionPath, "state.json");
 
   if (!fs.existsSync(sessionPath)) {
@@ -183,7 +174,6 @@ async function processRequest(fileName) {
 
   try {
     const action = request.action || "open";
-
     const targetUrl = request.url;
 
     if (action === "open") {
@@ -207,19 +197,14 @@ async function processRequest(fileName) {
 
       await sleep(1500);
 
-      if (
-        typeof request.x !== "number" ||
-        typeof request.y !== "number"
-      ) {
+      if (typeof request.x !== "number" || typeof request.y !== "number") {
         throw new Error("Missing click coordinates");
       }
 
       await page.mouse.click(request.x, request.y);
-
       await sleep(2500);
     }
 
-    // TYPE
     if (action === "type") {
       if (request.url) {
         await page.goto(request.url, {
@@ -241,7 +226,6 @@ async function processRequest(fileName) {
       await sleep(1500);
     }
 
-    // PASTE TEXT
     if (action === "paste_text") {
       if (request.url) {
         await page.goto(request.url, {
@@ -256,58 +240,42 @@ async function processRequest(fileName) {
         throw new Error("Missing text for paste_text action");
       }
 
-      await page.evaluate((text) => {
+      // ** کلید اصلی تغییر اینجاست: استفاده از Clipboard API و Ctrl+V واقعی **
+      await page.evaluate(async (text) => {
+        // در صورت نیاز می‌توانید قبل از paste input را فوکوس کنید
         const el = document.activeElement;
-
-        if (!el) {
-          return;
-        }
-
-        if (
-          el.tagName === "INPUT" ||
-          el.tagName === "TEXTAREA"
-        ) {
+        if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) {
           el.focus();
-
-          el.value = text;
-
-          el.dispatchEvent(
-            new Event("input", {
-              bubbles: true
-            })
-          );
-
-          el.dispatchEvent(
-            new Event("change", {
-              bubbles: true
-            })
-          );
         }
+        await navigator.clipboard.writeText(text);
       }, request.text);
+
+      await sleep(500); // کمی صبر برای کپی شدن در clipboard
+
+      // شبیه‌سازی کلیدهای واقعی Ctrl+V (در مک Meta+V)
+      const isMac = process.platform === "darwin";
+      if (isMac) {
+        await page.keyboard.press("Meta+V");
+      } else {
+        await page.keyboard.press("Control+V");
+      }
 
       await sleep(1500);
     }
 
     const ready = await waitForPageReady(page, 15000);
-
     if (!ready) {
       console.log("Body not fully ready, continuing with fallback...");
     }
 
     await sleep(2000);
 
+    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page
-        .locator("body")
-        .first()
-        .waitFor({
-          timeout: 5000,
-          state: "attached"
-        });
+      await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
     } catch (_) {}
 
     await autoScroll(page);
-
     await sleep(1500);
 
     try {
