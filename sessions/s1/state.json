@@ -763,6 +763,16 @@
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-STRP",
+      "value": "AEEP7gLtjikyJ1FTxyqwCrENNpZaJcwO2jvEQmyblepXUCaqf7LNV_0YQZA74S9iuvgCT4kUELSNJEj7uNdD9ziH8sNNfeBo7kLD",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1778704852.78434,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
     }
   ],
   "origins": [
@@ -771,7 +781,7 @@
       "localStorage": [
         {
           "name": "sb_wiz.zpc.gws-wiz.",
-          "value": "{\"0\":[[\"warren buffett stock market warning\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"minas tirith lego\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"nebraska primary election results\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"polycystic ovary syndrome\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"java edition friends list\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"mexico jersey someone somewhere\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"dollar general solar lights outdoor\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"applebee&#39;s $15.99 deal\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"north carolina state budget\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"fortnite overwatch collab\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}]],\"1\":{\"av\":\"1514092395605463703\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+          "value": "{\"0\":[[\"warren buffett stock market warning\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"canvas hackers ransom\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"hybe geffen girl group saint satine\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"xbox game pass discord nitro games\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"san diego padres vs brewers prediction\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"hantavirus outbreak cruise ship\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"bob dylan ed sullivan show\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"austrian jets intercept us aircraft\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"java edition friends list\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"ford vs chevrolet reliability comparison\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"3329950867319399258\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
         }
       ]
     },
