@@ -401,16 +401,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "__Secure-STRP",
-      "value": "AEEP7gLAvBgjAqJ6ibHlvQhSVmwMWfFIjGOxWtmdt6i2r8pH4pgi_aQ6rsce-G1rICDbXMdJmKx7B7E81gGTNzVzidV9eC0WOw",
-      "domain": ".google.com",
-      "path": "/",
-      "expires": 1778627514.157909,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "Strict"
-    },
-    {
       "name": "__Host-GAPS",
       "value": "1:N3oYtEyqhycp6KflOjzMjd-xc78dcg:hwwiR4_URP23mVlK",
       "domain": "accounts.google.com",
@@ -419,9 +409,70 @@
       "httpOnly": true,
       "secure": true,
       "sameSite": "Lax"
+    },
+    {
+      "name": "datr",
+      "value": "oyoEaiVkJfVO1ckbjoJWoqAa",
+      "domain": ".facebook.com",
+      "path": "/",
+      "expires": 1813217955.63775,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "fr",
+      "value": "0OxI1LLlYw498npdR..BqBCqj..AAA.0.0.BqBCqj.AWeDopf5AprKnmJ8l7Y34SjPNvg",
+      "domain": ".facebook.com",
+      "path": "/",
+      "expires": 1786433955.805932,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sb",
+      "value": "oyoEasUR5Qd3nrYMRk-NB87e",
+      "domain": ".facebook.com",
+      "path": "/",
+      "expires": 1813217955.806043,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "wd",
+      "value": "1920x1080",
+      "domain": ".facebook.com",
+      "path": "/",
+      "expires": 1779262756,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.facebook.com",
+      "localStorage": [
+        {
+          "name": "signal_flush_timestamp",
+          "value": "1778657956661"
+        },
+        {
+          "name": "Session",
+          "value": "m4jnfh:1778657995521"
+        },
+        {
+          "name": "hb_timestamp",
+          "value": "1778657956649"
+        },
+        {
+          "name": "banzai:last_storage_flush",
+          "value": "1778657957584.2"
+        }
+      ]
+    },
     {
       "origin": "https://www.google.com",
       "localStorage": [
