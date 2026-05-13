@@ -699,7 +699,7 @@
       "value": "GA1.1.1013801375.1778673405",
       "domain": ".beeg.com",
       "path": "/",
-      "expires": 1813234208.634585,
+      "expires": 1813234230.887731,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -835,24 +835,24 @@
       "sameSite": "None"
     },
     {
-      "name": "bh",
-      "value": "EkAiQ2hyb21pdW0iO3Y9IjE0OCIsIkhlYWRsZXNzQ2hyb21lIjt2PSIxNDgiLCJOb3QvQSlCcmFuZCI7dj0iOTkiGgN4ODYiDTE0OC4wLjc3NzguOTYqAj8wOgVMaW51eEoCNjRSWiJDaHJvbWl1bSI7dj0iMTQ4LjAuNzc3OC45NiIsIkhlYWRsZXNzQ2hyb21lIjt2PSIxNDguMC43Nzc4Ljk2IiwiTm90L0EpQnJhbmQiO3Y9Ijk5LjAuMC4wImCi1JHQBmoZ3MrpiA7yrLelC/v68OcN6//99g+Vic6HCA==",
-      "domain": ".yandex.com",
-      "path": "/",
-      "expires": 1813234210,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
       "name": "_ga_MQH2C0NN3E",
-      "value": "GS2.1.s1778673404$o1$g1$t1778674211$j23$l0$h0$dYdmd-cQBqWzR6AW9SZCS0a_GxzEdeDzcZA",
+      "value": "GS2.1.s1778673404$o1$g1$t1778674231$j3$l0$h0$dYdmd-cQBqWzR6AW9SZCS0a_GxzEdeDzcZA",
       "domain": ".beeg.com",
       "path": "/",
-      "expires": 1813234211.386605,
+      "expires": 1813234231.432696,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "bh",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIaA3g4NiINMTQ4LjAuNzc3OC45NioCPzA6ByJMaW51eCJKAjY0UloiQ2hyb21pdW0iO3Y9IjE0OC4wLjc3NzguOTYiLCJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4LjAuNzc3OC45NiIsIk5vdC9BKUJyYW5kIjt2PSI5OS4wLjAuMCJguNSR0AZqGdzK6YgO8qy3pQv7+vDnDev//fYPlYnOhwg=",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813234232,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
     }
   ],
   "origins": [
@@ -873,7 +873,7 @@
         },
         {
           "name": "_ym31745081:0_reqNum",
-          "value": "22"
+          "value": "23"
         },
         {
           "name": "_ym_uid",
@@ -881,7 +881,7 @@
         },
         {
           "name": "bandwidth-estimate",
-          "value": "296134743.9647447"
+          "value": "266143723.7040332"
         },
         {
           "name": "_gcl_ls",
