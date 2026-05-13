@@ -633,6 +633,86 @@
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
+    },
+    {
+      "name": "_mfcs_perm",
+      "value": "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkltTTRNV1ZsTVdRNUxXSmhNVEV0TkRrMk5DMWlaREEyTFRjd056VTVNbVl6WXpWaU1TST0iLCJleHAiOm51bGwsInB1ciI6ImNvb2tpZS5fbWZjc19wZXJtIn19--358a55568a860063c7d541907d3c6dba4dc2b44f",
+      "domain": ".myfreecams.com",
+      "path": "/",
+      "expires": 1813233329.644312,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "pref_cli",
+      "value": "w",
+      "domain": ".myfreecams.com",
+      "path": "/",
+      "expires": 1781265330.413601,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_0PF4THP0XY",
+      "value": "GS2.1.s1778673330$o1$g0$t1778673330$j60$l0$h0",
+      "domain": ".myfreecams.com",
+      "path": "/",
+      "expires": 1813233330.541886,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.541008833.1778673331",
+      "domain": ".myfreecams.com",
+      "path": "/",
+      "expires": 1813233330.542322,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "window_size",
+      "value": "1920x1080",
+      "domain": "share.myfreecams.com",
+      "path": "/",
+      "expires": 1813233330.569389,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "browser_time_zone",
+      "value": "UTC",
+      "domain": "share.myfreecams.com",
+      "path": "/",
+      "expires": 1813233330.58792,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "g_state",
+      "value": "{\"i_l\":0,\"i_ll\":1778673330739,\"i_b\":\"hV49fE54exoZ7RDdXyC1bPtjYT26Leugf9+dTJLPtPg\",\"i_e\":{\"enable_itp_optimization\":0},\"i_et\":1778673330184}",
+      "domain": "share.myfreecams.com",
+      "path": "/",
+      "expires": 1794225330,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_mfcs_session_v2",
+      "value": "MsNHK9lm7%2BEbvj5910PthjC%2FGmuf0oHoNa2nP1bmkRPhpiTEYqwOsNW8NPaQLMiNs0w0OYcp%2B92kLK0M52Dj0oRhQAiPL4iXi2lQ%2BQwAsKxNMRFhSrLJd%2FJ6BQFnEIytQXU9w%2BtaQ17lUhmLfOl3LmlHAQK3%2FlciLndY5%2BMNb8Sryh1hlGZevTiCMKS77gwfGOcx2ni5HYzOIZNZ%2Flg%2FrrJ6%2FRrZpIl1I%2Faixxfh8TjuQFDp60UjKbRkWxCTcbHRIh2aAAAtnJiVgaY%2BVYmTM4to8gxCzE%2F4%2B9qSefS06y%2FW0f4eQoaJ8z6g%2FDjsYg%3D%3D--O8hvlxTdmPXxVpjo--m8ffNINIjW1V7LBS2nGCMw%3D%3D",
+      "domain": ".share.myfreecams.com",
+      "path": "/",
+      "expires": 1794570931.649018,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
