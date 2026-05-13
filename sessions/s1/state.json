@@ -497,16 +497,6 @@
     {
       "name": "d_b",
       "value": "1",
-      "domain": ".jerkmate.net",
-      "path": "/",
-      "expires": 1778673392,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "d_b",
-      "value": "1",
       "domain": ".pornhub.com",
       "path": "/",
       "expires": 1778673826,
@@ -713,9 +703,238 @@
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.1013801375.1778673405",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1813233404.972744,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "bh",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIqAj8wOgciTGludXgiYP7NkdAGahncyumIDvKst6UL+/rw5w3r//32D5WJzocI",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813233406.36309,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ym_uid",
+      "value": "1778673407457876104",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1810209406,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ym_d",
+      "value": "1778673407",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1810209406,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf",
+      "value": "223057592fake",
+      "domain": ".mc.yandex.com",
+      "path": "/",
+      "expires": 1778674006,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ym_isad",
+      "value": "2",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1778745407,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf",
+      "value": "2076436122fake",
+      "domain": ".mc.yandex.ru",
+      "path": "/",
+      "expires": 1778674007,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yabs-sid",
+      "value": "622722701778673407",
+      "domain": "mc.yandex.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "i",
+      "value": "Ck2MPOrEVMr7iOKztz8UR3iNLnsqqGJTw0Q4XRkMX64IKxqigjDJ7IvYvhe2+BcR7cQ4GdzwrtSaCM5vmAHElsxwuIE=",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813233407.594779,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yandexuid",
+      "value": "7936742401778673407",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813233407.59481,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yuidss",
+      "value": "7936742401778673407",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1810209407,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ymex",
+      "value": "1810209407.yrts.1778673407#1810209407.yrtsi.1778673407",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1810209407,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ga_MQH2C0NN3E",
+      "value": "GS2.1.s1778673404$o1$g0$t1778673407$j57$l0$h0$dYdmd-cQBqWzR6AW9SZCS0a_GxzEdeDzcZA",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1813233407.734617,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "bh",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIaA3g4NiINMTQ4LjAuNzc3OC45NioCPzA6ByJMaW51eCJKAjY0UloiQ2hyb21pdW0iO3Y9IjE0OC4wLjc3NzguOTYiLCJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4LjAuNzc3OC45NiIsIk5vdC9BKUJyYW5kIjt2PSI5OS4wLjAuMCJg/82R0AZqGdzK6YgO8qy3pQv7+vDnDev//fYPlYnOhwg=",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813233407,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf_secondary",
+      "value": "2164295075fake",
+      "domain": ".mc.yandex.com",
+      "path": "/",
+      "expires": 1778674007,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf_secondary",
+      "value": "1281512209fake",
+      "domain": ".mc.yandex.ru",
+      "path": "/",
+      "expires": 1778674008,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_ok_secondary",
+      "value": "synced",
+      "domain": ".mc.yandex.com",
+      "path": "/",
+      "expires": 1778759808,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yandexuid",
+      "value": "7936742401778673407",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813233408.632546,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yuidss",
+      "value": "7936742401778673407",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813233408.632628,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "i",
+      "value": "Ck2MPOrEVMr7iOKztz8UR3iNLnsqqGJTw0Q4XRkMX64IKxqigjDJ7IvYvhe2+BcR7cQ4GdzwrtSaCM5vmAHElsxwuIE=",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813233408.632648,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
     }
   ],
   "origins": [
+    {
+      "origin": "https://beeg.com",
+      "localStorage": [
+        {
+          "name": "_ym_synced",
+          "value": "{\"com\":29644556}"
+        },
+        {
+          "name": "_ym_uid",
+          "value": "\"1778673407457876104\""
+        },
+        {
+          "name": "_gcl_ls",
+          "value": "{\"schema\":\"gcl\",\"version\":1,\"gtg_load_status\":{\"status\":2,\"expires\":1778759805680}}"
+        },
+        {
+          "name": "_ym31745081_lsid",
+          "value": "357938887544"
+        },
+        {
+          "name": "_ym_retryReqs",
+          "value": "{}"
+        },
+        {
+          "name": "_ym31745081:0_reqNum",
+          "value": "1"
+        }
+      ]
+    },
     {
       "origin": "https://www.pornhub.com",
       "localStorage": [
