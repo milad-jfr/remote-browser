@@ -535,16 +535,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "test_cookie",
-      "value": "CheckForPermission",
-      "domain": ".doubleclick.net",
-      "path": "/",
-      "expires": 1778701326.466664,
-      "httpOnly": true,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
       "name": "_twpid",
       "value": "tw.1778700426530.818426070781771664",
       "domain": ".cloudflare.com",
@@ -783,9 +773,58 @@
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-STRP",
+      "value": "AEEP7gIe-1z67XVT1xP1-yl8GoTNNd5EPUvUZsfvIc9L6Rjb8hIV8OZmMqY03AT5voSNy_rXEr4RFOJnw0Ikmnrq0lNl0Cxanx2H",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1778702196.851594,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "AEC",
+      "value": "AaJma5tv_0MaKl0r2DDnK7YNpKvabC5zP-US2f9KTpOv_mVK7XYG14Qqfws",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1794253896.851733,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-BUCKET",
+      "value": "CMQC",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1794253896.851786,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "NID",
+      "value": "531=KaIjNz96Yrjwpj4MiPV4eX1DAttre8SJV9EsLuRKmzZHgQz7uwxEEGOZuTXvK4BGqhQAzjyDesTNHvUFEarDvwwCHrSiELvA7iBMonnaNSziF7DpTtvNC7nxSpOer0tdbpuo072Hcz3PfrPeQtA38GhhZ9u2hpYttLRetGPXPl7DOPCbQvvaxZs0SYIbQ1pGiNTAN7vipyCAIh4ODIMTfjUCh8SOvaukt82d",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1794513096.267922,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "sb_wiz.zpc.gws-wiz.",
+          "value": "{\"0\":[[\"nebraska primary election results\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"texas a&amp;m running back retirement\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"polycystic ovary syndrome\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"tj maxx memorial day hours\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"flight attendant devil wears prada\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"palworld trademark\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"solar flare northern lights\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"henry cavill voltron\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"ralph lauren american icons stamps\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"mexico jersey someone somewhere\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}]],\"1\":{\"av\":\"1555175119504948697\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+        }
+      ]
+    },
     {
       "origin": "https://beeg.com",
       "localStorage": [
