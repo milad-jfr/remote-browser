@@ -135,7 +135,7 @@
       "value": "GA1.1.912599202.1778619195",
       "domain": ".pornhub.com",
       "path": "/",
-      "expires": 1813232326.197477,
+      "expires": 1813232357.724548,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -595,26 +595,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "_ga_B39RFFWGYY",
-      "value": "GS2.1.s1778658880$o3$g1$t1778672326$j41$l0$h0",
-      "domain": ".pornhub.com",
-      "path": "/",
-      "expires": 1813232326.196987,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "tj_UUID",
-      "value": "ChDMSMjoDpdKk4lfJDxQXO6LEgsI98mN0AYQgqilVhgDKgwIyMWR0AYQgMTDsAM=",
-      "domain": ".www.pornhub.com",
-      "path": "/",
-      "expires": 1781264329.059825,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "None"
-    },
-    {
       "name": "a934929e-7691-4b06-9917-cc988eb8f7cd-v4",
       "value": "_LdTRaTw8uXnj7a2yNu48P4yE2yEYmMHD_TLYvy-njs",
       "domain": ".v.mbvlmb.com",
@@ -642,6 +622,26 @@
       "expires": 1813232330.377687,
       "httpOnly": false,
       "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_B39RFFWGYY",
+      "value": "GS2.1.s1778658880$o3$g1$t1778672357$j10$l0$h0",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1813232357.724099,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tj_UUID",
+      "value": "ChDMSMjoDpdKk4lfJDxQXO6LEgsI98mN0AYQgqilVhgDKgsI58WR0AYQ7NXrRA==",
+      "domain": ".www.pornhub.com",
+      "path": "/",
+      "expires": 1781264359.473759,
+      "httpOnly": false,
+      "secure": true,
       "sameSite": "Lax"
     }
   ],
