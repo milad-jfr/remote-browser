@@ -159,6 +159,196 @@
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "ua",
+      "value": "c641c09d21ddd75a372aa2b2212606bf",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1778770427.977833,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "platform",
+      "value": "pc",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1779288827.97795,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "bs",
+      "value": "0000000000000000b65b8ea5ea8f7b41",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1810220027.97797,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "bsdd",
+      "value": "0000000000000000b65b8ea5ea8f7b41",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1810220027.977988,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ss",
+      "value": "396940445926783821",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1810220027.978014,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "sessid",
+      "value": "576529182829469156",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1810220027.978039,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "comp_detect-cookies",
+      "value": "17350.100000",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1781276027.978055,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "fg_afaf12e314c5419a855ddc0bf120670f",
+      "value": "36613.100000",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1781276027.978075,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "fg_55e3b6f0afd46366d6fa797544b15af2",
+      "value": "28093.100000",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1781276027.978095,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__s",
+      "value": "6A04907B-42FE722901BB66F36-1AC10B86",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "__l",
+      "value": "6A04907B-42FE722901BB66F36-1AC10B86",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1810240953.978171,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "cookieConsent",
+      "value": "1",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1810220029,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "d_fs",
+      "value": "1",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_B39RFFWGYY",
+      "value": "GS2.1.s1778684029$o1$g0$t1778684029$j60$l0$h0",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1813244029.655765,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.1537929918.1778684030",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1813244029.657296,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tj_UUID_v2",
+      "value": "ChDMSMjoDpdKk4lfJDxQXO6LEgsI98mN0AYQgqilVhgDKgwI_aCS0AYQvq35qgI=",
+      "domain": ".www.pornhub.com",
+      "path": "/",
+      "expires": 1781276029.776829,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "d_b",
+      "value": "1",
+      "domain": ".pornhub.com",
+      "path": "/",
+      "expires": 1778687629,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "rp",
+      "value": "1149592973:vmkTOfjiynI=",
+      "domain": "www.pornhub.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tj_UUID",
+      "value": "ChDMSMjoDpdKk4lfJDxQXO6LEgsI98mN0AYQgqilVhgDKgwI_qCS0AYQuNLqsAM=",
+      "domain": ".www.pornhub.com",
+      "path": "/",
+      "expires": 1781276031.216401,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
