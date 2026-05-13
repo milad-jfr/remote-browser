@@ -1,0 +1,235 @@
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.451137742.1778682427",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1813242426.74461,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "bh",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIqAj8wOgciTGludXgiYLuUktAGahncyumIDvKst6UL+/rw5w3r//32D5WJzocI",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813242427.893572,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ym_uid",
+      "value": "1778682428262499114",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1810218428,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ym_d",
+      "value": "1778682428",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1810218428,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf",
+      "value": "2688840304fake",
+      "domain": ".mc.yandex.com",
+      "path": "/",
+      "expires": 1778683028,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ym_isad",
+      "value": "2",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1778754428,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf",
+      "value": "2371136212fake",
+      "domain": ".mc.yandex.ru",
+      "path": "/",
+      "expires": 1778683028,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yabs-sid",
+      "value": "2250016691778682429",
+      "domain": "mc.yandex.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "i",
+      "value": "GVCdexKEpztZlH/ymMclwgAxyIReU/P3qkDeyJ7TX46IWbVoZicRTvBCR21Bs95jukwEd17sUrP6jXKNEMAjfg59zn4=",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813242429.142805,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yandexuid",
+      "value": "3727923631778682429",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813242429.142852,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yuidss",
+      "value": "3727923631778682429",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1810218429,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "ymex",
+      "value": "1810218429.yrts.1778682429#1810218429.yrtsi.1778682429",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1810218429,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_ga_MQH2C0NN3E",
+      "value": "GS2.1.s1778682426$o1$g0$t1778682429$j57$l0$h0$dMHcyqQZZCXSFi7dTPMxI8CG6FbAgXB8nxQ",
+      "domain": ".beeg.com",
+      "path": "/",
+      "expires": 1813242429.231408,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "bh",
+      "value": "EkIiQ2hyb21pdW0iO3Y9IjE0OCIsICJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4IiwgIk5vdC9BKUJyYW5kIjt2PSI5OSIaA3g4NiINMTQ4LjAuNzc3OC45NioCPzA6ByJMaW51eCJKAjY0UloiQ2hyb21pdW0iO3Y9IjE0OC4wLjc3NzguOTYiLCJIZWFkbGVzc0Nocm9tZSI7dj0iMTQ4LjAuNzc3OC45NiIsIk5vdC9BKUJyYW5kIjt2PSI5OS4wLjAuMCJgvZSS0AZqGdzK6YgO8qy3pQv7+vDnDev//fYPlYnOhwg=",
+      "domain": ".yandex.com",
+      "path": "/",
+      "expires": 1813242429,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf_secondary",
+      "value": "511283833fake",
+      "domain": ".mc.yandex.com",
+      "path": "/",
+      "expires": 1778683029,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_csrf_secondary",
+      "value": "3908070736fake",
+      "domain": ".mc.yandex.ru",
+      "path": "/",
+      "expires": 1778683029,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "sync_cookie_ok_secondary",
+      "value": "synced",
+      "domain": ".mc.yandex.com",
+      "path": "/",
+      "expires": 1778768829,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yandexuid",
+      "value": "3727923631778682429",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813242430.182478,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "yuidss",
+      "value": "3727923631778682429",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813242430.182551,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "i",
+      "value": "GVCdexKEpztZlH/ymMclwgAxyIReU/P3qkDeyJ7TX46IWbVoZicRTvBCR21Bs95jukwEd17sUrP6jXKNEMAjfg59zn4=",
+      "domain": ".yandex.ru",
+      "path": "/",
+      "expires": 1813242430.18257,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://beeg.com",
+      "localStorage": [
+        {
+          "name": "_ym_synced",
+          "value": "{\"com\":29644707}"
+        },
+        {
+          "name": "_ym_uid",
+          "value": "\"1778682428262499114\""
+        },
+        {
+          "name": "_gcl_ls",
+          "value": "{\"schema\":\"gcl\",\"version\":1,\"gtg_load_status\":{\"status\":2,\"expires\":1778768827192}}"
+        },
+        {
+          "name": "_ym31745081_lsid",
+          "value": "587706383828"
+        },
+        {
+          "name": "_ym_retryReqs",
+          "value": "{}"
+        },
+        {
+          "name": "_ym31745081:0_reqNum",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}
