@@ -57,14 +57,15 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
+  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
+  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
-
       if (bodyExists > 0) {
         return true;
       }
@@ -86,13 +87,9 @@ async function autoScroll(page) {
       await new Promise((resolve) => {
         let totalHeight = 0;
         const distance = 1000;
-
         const timer = setInterval(() => {
           try {
-            const scrollHeight = document.body
-              ? document.body.scrollHeight
-              : 0;
-
+            const scrollHeight = document.body ? document.body.scrollHeight : 0;
             window.scrollBy(0, distance);
             totalHeight += distance;
 
@@ -111,52 +108,6 @@ async function autoScroll(page) {
   } catch (err) {
     console.log("autoScroll skipped:", err.message);
   }
-}
-
-async function performRealClick(page, x, y) {
-  const elementInfo = await page.evaluate(({ x, y }) => {
-    const el = document.elementFromPoint(x, y);
-
-    if (!el) {
-      return null;
-    }
-
-    const tag = el.tagName.toLowerCase();
-    const role = el.getAttribute("role");
-    const href = el.href || null;
-
-    return {
-      tag,
-      role,
-      href,
-      text: (el.innerText || "").slice(0, 100)
-    };
-  }, { x, y });
-
-  console.log("Clicked element:", elementInfo);
-
-  await page.mouse.move(x, y);
-
-  await sleep(100);
-
-  await page.mouse.down();
-
-  await sleep(80);
-
-  await page.mouse.up();
-
-  try {
-    await Promise.race([
-      page.waitForLoadState("domcontentloaded", {
-        timeout: 5000
-      }),
-      page.waitForTimeout(5000)
-    ]);
-  } catch (_) {}
-
-  await sleep(1500);
-
-  return elementInfo;
 }
 
 async function processRequest(fileName) {
@@ -217,7 +168,6 @@ async function processRequest(fileName) {
     title: "",
     url: "",
     screenshot: `${id}.jpg`,
-    clickedElement: null,
     error: null,
     createdAt: Date.now()
   };
@@ -238,7 +188,6 @@ async function processRequest(fileName) {
     }
 
     if (action === "click") {
-
       if (request.url) {
         await page.goto(request.url, {
           waitUntil: "domcontentloaded",
@@ -246,42 +195,29 @@ async function processRequest(fileName) {
         });
       }
 
-      await sleep(2000);
+      await sleep(1500);
 
-      if (
-        typeof request.x !== "number" ||
-        typeof request.y !== "number"
-      ) {
+      if (typeof request.x !== "number" || typeof request.y !== "number") {
         throw new Error("Missing click coordinates");
       }
 
-      result.clickedElement = await performRealClick(
-        page,
-        request.x,
-        request.y
-      );
+      await page.mouse.click(request.x, request.y);
+      await sleep(2500);
     }
 
     const ready = await waitForPageReady(page, 15000);
-
     if (!ready) {
       console.log("Body not fully ready, continuing with fallback...");
     }
 
     await sleep(2000);
 
+    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page
-        .locator("body")
-        .first()
-        .waitFor({
-          timeout: 5000,
-          state: "attached"
-        });
+      await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
     } catch (_) {}
 
     await autoScroll(page);
-
     await sleep(1500);
 
     try {
@@ -303,8 +239,6 @@ async function processRequest(fileName) {
       fullPage: true
     });
 
-    console.log("Screenshot captured");
-
     await context.storageState({
       path: statePath
     });
@@ -312,8 +246,6 @@ async function processRequest(fileName) {
   } catch (err) {
     result.status = "error";
     result.error = err.message;
-
-    console.error("Worker error:", err);
   }
 
   await browser.close();
