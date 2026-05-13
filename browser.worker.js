@@ -57,10 +57,12 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
+  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
+  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
@@ -203,18 +205,39 @@ async function processRequest(fileName) {
       await sleep(2500);
     }
 
+    // ===== NEW ACTION: TYPE =====
     if (action === "type") {
+
+      if (request.url) {
+        await page.goto(request.url, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        });
+      }
+
       await sleep(1000);
 
       if (!request.text) {
         throw new Error("Missing text for type action");
       }
 
-      await page.keyboard.type(request.text, { delay: 20 });
+      await page.keyboard.type(request.text, {
+        delay: 20
+      });
+
       await sleep(1500);
     }
 
+    // ===== NEW ACTION: PASTE_TEXT =====
     if (action === "paste_text") {
+
+      if (request.url) {
+        await page.goto(request.url, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        });
+      }
+
       await sleep(1000);
 
       if (!request.text) {
@@ -222,6 +245,7 @@ async function processRequest(fileName) {
       }
 
       await page.keyboard.insertText(request.text);
+
       await sleep(1500);
     }
 
@@ -232,8 +256,12 @@ async function processRequest(fileName) {
 
     await sleep(2000);
 
+    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
+      await page.locator("body").first().waitFor({
+        timeout: 5000,
+        state: "attached"
+      });
     } catch (_) {}
 
     await autoScroll(page);
