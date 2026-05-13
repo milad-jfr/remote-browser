@@ -23,7 +23,6 @@ function sleep(ms) {
 }
 
 function cleanupResults(maxResults = 5) {
-
   const resultJsonFiles = fs.readdirSync(RESULT_DIR)
     .filter(file => file.endsWith(".json"))
     .sort();
@@ -38,14 +37,10 @@ function cleanupResults(maxResults = 5) {
   );
 
   for (const file of filesToDelete) {
-
     const id = path.parse(file).name;
 
-    const jsonPath =
-      path.join(RESULT_DIR, `${id}.json`);
-
-    const imagePath =
-      path.join(RESULT_DIR, `${id}.jpg`);
+    const jsonPath = path.join(RESULT_DIR, `${id}.json`);
+    const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
 
     if (fs.existsSync(jsonPath)) {
       fs.unlinkSync(jsonPath);
@@ -59,33 +54,20 @@ function cleanupResults(maxResults = 5) {
   }
 }
 
-async function waitForPageReady(
-  page,
-  timeout = 20000
-) {
-
+async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
   try {
-
-    await page.waitForLoadState(
-      "domcontentloaded",
-      { timeout }
-    );
-
+    await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
   while (Date.now() - start < timeout) {
-
     try {
-
-      const bodyExists =
-        await page.locator("body").count();
+      const bodyExists = await page.locator("body").count();
 
       if (bodyExists > 0) {
         return true;
       }
-
     } catch (_) {}
 
     await sleep(300);
@@ -95,25 +77,18 @@ async function waitForPageReady(
 }
 
 async function autoScroll(page) {
-
   try {
-
     await page.evaluate(async () => {
-
       if (!document.body) {
         return;
       }
 
       await new Promise((resolve) => {
-
         let totalHeight = 0;
-
         const distance = 1000;
 
         const timer = setInterval(() => {
-
           try {
-
             const scrollHeight =
               document.body
                 ? document.body.scrollHeight
@@ -124,7 +99,6 @@ async function autoScroll(page) {
             totalHeight += distance;
 
             if (totalHeight >= scrollHeight) {
-
               clearInterval(timer);
 
               window.scrollTo(0, 0);
@@ -133,16 +107,12 @@ async function autoScroll(page) {
             }
 
           } catch (_) {
-
             clearInterval(timer);
-
             resolve();
           }
 
         }, 250);
-
       });
-
     });
 
   } catch (err) {
@@ -152,127 +122,6 @@ async function autoScroll(page) {
       err.message
     );
   }
-}
-
-async function restoreLastClick(
-  page,
-  sessionPath
-) {
-
-  const lastClickPath =
-    path.join(
-      sessionPath,
-      "last-click.json"
-    );
-
-  if (!fs.existsSync(lastClickPath)) {
-    return;
-  }
-
-  try {
-
-    const lastClick =
-      JSON.parse(
-        fs.readFileSync(
-          lastClickPath,
-          "utf8"
-        )
-      );
-
-    if (
-      typeof lastClick.x === "number" &&
-      typeof lastClick.y === "number"
-    ) {
-
-      await page.mouse.click(
-        lastClick.x,
-        lastClick.y
-      );
-
-      await sleep(500);
-    }
-
-  } catch (_) {}
-}
-
-async function injectText(
-  page,
-  text
-) {
-
-  await page.evaluate((value) => {
-
-    const el =
-      document.activeElement;
-
-    if (!el) {
-      return;
-    }
-
-    const tag =
-      el.tagName.toLowerCase();
-
-    const isEditable =
-      tag === "input" ||
-      tag === "textarea" ||
-      el.isContentEditable;
-
-    if (!isEditable) {
-      return;
-    }
-
-    if (el.isContentEditable) {
-
-      el.focus();
-
-      document.execCommand(
-        "insertText",
-        false,
-        value
-      );
-
-    } else {
-
-      el.focus();
-
-      const start =
-        el.selectionStart ??
-        el.value.length;
-
-      const end =
-        el.selectionEnd ??
-        el.value.length;
-
-      const current =
-        el.value || "";
-
-      el.value =
-        current.slice(0, start) +
-        value +
-        current.slice(end);
-
-      const pos =
-        start + value.length;
-
-      el.selectionStart = pos;
-      el.selectionEnd = pos;
-    }
-
-    el.dispatchEvent(
-      new InputEvent("input", {
-        bubbles: true,
-        inputType: "insertText",
-        data: value
-      })
-    );
-
-    el.dispatchEvent(
-      new Event("change", {
-        bubbles: true
-      })
-    );
-
-  }, text);
 }
 
 async function processRequest(fileName) {
@@ -335,10 +184,12 @@ async function processRequest(fileName) {
     context =
       await browser.newContext({
         storageState: statePath,
+
         viewport: {
           width: 1920,
           height: 1080
         },
+
         deviceScaleFactor: 1,
         isMobile: false
       });
@@ -347,10 +198,12 @@ async function processRequest(fileName) {
 
     context =
       await browser.newContext({
+
         viewport: {
           width: 1920,
           height: 1080
         },
+
         deviceScaleFactor: 1,
         isMobile: false
       });
@@ -381,25 +234,32 @@ async function processRequest(fileName) {
     if (action === "open") {
 
       if (!targetUrl) {
+
         throw new Error(
           "Missing request.url for open action"
         );
       }
 
-      await page.goto(targetUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: 60000
-      });
+      await page.goto(
+        targetUrl,
+        {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        }
+      );
     }
 
     if (action === "click") {
 
       if (request.url) {
 
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
+        await page.goto(
+          request.url,
+          {
+            waitUntil: "domcontentloaded",
+            timeout: 60000
+          }
+        );
       }
 
       await sleep(1500);
@@ -419,17 +279,6 @@ async function processRequest(fileName) {
         request.y
       );
 
-      fs.writeFileSync(
-        path.join(
-          sessionPath,
-          "last-click.json"
-        ),
-        JSON.stringify({
-          x: request.x,
-          y: request.y
-        })
-      );
-
       await sleep(2500);
     }
 
@@ -437,28 +286,32 @@ async function processRequest(fileName) {
 
       if (request.url) {
 
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
+        await page.goto(
+          request.url,
+          {
+            waitUntil: "domcontentloaded",
+            timeout: 60000
+          }
+        );
       }
 
       await sleep(1500);
 
-      await restoreLastClick(
-        page,
-        sessionPath
+      if (!request.text) {
+
+        throw new Error(
+          "Missing text for paste_text action"
+        );
+      }
+
+      await page.keyboard.type(
+        request.text,
+        {
+          delay: 20
+        }
       );
 
-      const text =
-        request.text || "";
-
-      await injectText(
-        page,
-        text
-      );
-
-      await sleep(1000);
+      await sleep(1500);
     }
 
     const ready =
@@ -518,6 +371,7 @@ async function processRequest(fileName) {
         RESULT_DIR,
         `${id}.jpg`
       ),
+
       type: "jpeg",
       quality: 60,
       fullPage: true
@@ -542,6 +396,7 @@ async function processRequest(fileName) {
       RESULT_DIR,
       `${id}.json`
     ),
+
     JSON.stringify(
       result,
       null,
