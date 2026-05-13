@@ -1,114 +1,369 @@
-export default {
-  async fetch(request, env, ctx) {
-    try {
-      if (request.method !== "POST") {
-        return new Response("Use POST", { status: 405 });
-      }
+import fs from "fs";
+import path from "path";
+import { chromium } from "playwright";
 
-      const body = await request.json();
+const REQUEST_DIR = "./request";
+const RESULT_DIR = "./result";
+const SESSION_DIR = "./sessions";
 
-      const {
-        action,
-        url,
-        x,
-        y,
-        text,
-        width = 1280,
-        height = 720,
-      } = body;
+if (!fs.existsSync(REQUEST_DIR)) {
+  fs.mkdirSync(REQUEST_DIR, { recursive: true });
+}
 
-      const browser = await puppeteer.launch(env.MYBROWSER);
+if (!fs.existsSync(RESULT_DIR)) {
+  fs.mkdirSync(RESULT_DIR, { recursive: true });
+}
 
-      const page = await browser.newPage();
+if (!fs.existsSync(SESSION_DIR)) {
+  fs.mkdirSync(SESSION_DIR, { recursive: true });
+}
 
-      await page.setViewport({
-        width,
-        height,
-      });
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-      const sleep = (ms) =>
-        new Promise((resolve) => setTimeout(resolve, ms));
+function cleanupResults(maxResults = 5) {
+  const resultJsonFiles = fs.readdirSync(RESULT_DIR)
+    .filter(file => file.endsWith(".json"))
+    .sort();
 
-      // باز کردن صفحه
-      if (url) {
-        await page.goto(url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000,
-        });
+  if (resultJsonFiles.length <= maxResults) {
+    return;
+  }
 
-        await sleep(1500);
-      }
+  const filesToDelete = resultJsonFiles.slice(
+    0,
+    resultJsonFiles.length - maxResults
+  );
 
-      // کلیک
-      if (action === "click") {
-        await page.mouse.click(x, y);
+  for (const file of filesToDelete) {
+    const id = path.parse(file).name;
 
-        await sleep(1500);
-      }
+    const jsonPath = path.join(RESULT_DIR, `${id}.json`);
+    const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
 
-      // تایپ
-      if (action === "type") {
-        if (!text) {
-          throw new Error("Missing text for type action");
-        }
-
-        await page.keyboard.type(text, {
-          delay: 20,
-        });
-
-        await sleep(1500);
-      }
-
-      // paste text
-      if (action === "paste_text") {
-        if (!text) {
-          throw new Error("Missing text for paste_text action");
-        }
-
-        await page.fill(
-          "input:focus, textarea:focus",
-          text
-        );
-
-        await sleep(1500);
-      }
-
-      // اسکرول
-      if (action === "scroll") {
-        await page.mouse.wheel(0, y);
-
-        await sleep(1500);
-      }
-
-      // اسکرین‌شات
-      const screenshot = await page.screenshot({
-        type: "jpeg",
-        quality: 70,
-      });
-
-      await browser.close();
-
-      return new Response(screenshot, {
-        headers: {
-          "Content-Type": "image/jpeg",
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
-
-    } catch (err) {
-      return new Response(
-        JSON.stringify({
-          error: err.message,
-          stack: err.stack,
-        }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
+    if (fs.existsSync(jsonPath)) {
+      fs.unlinkSync(jsonPath);
     }
-  },
-};
+
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+
+    console.log(`Deleted old result: ${id}`);
+  }
+}
+
+async function waitForPageReady(page, timeout = 20000) {
+  const start = Date.now();
+
+  try {
+    await page.waitForLoadState("domcontentloaded", { timeout });
+  } catch (_) {}
+
+  while (Date.now() - start < timeout) {
+    try {
+      const bodyExists = await page.locator("body").count();
+
+      if (bodyExists > 0) {
+        return true;
+      }
+    } catch (_) {}
+
+    await sleep(300);
+  }
+
+  return false;
+}
+
+async function autoScroll(page) {
+  try {
+    await page.evaluate(async () => {
+      if (!document.body) {
+        return;
+      }
+
+      await new Promise((resolve) => {
+        let totalHeight = 0;
+        const distance = 1000;
+
+        const timer = setInterval(() => {
+          try {
+            const scrollHeight = document.body
+              ? document.body.scrollHeight
+              : 0;
+
+            window.scrollBy(0, distance);
+
+            totalHeight += distance;
+
+            if (totalHeight >= scrollHeight) {
+              clearInterval(timer);
+              window.scrollTo(0, 0);
+              resolve();
+            }
+          } catch (e) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 250);
+      });
+    });
+  } catch (err) {
+    console.log("autoScroll skipped:", err.message);
+  }
+}
+
+async function processRequest(fileName) {
+  const requestPath = path.join(REQUEST_DIR, fileName);
+
+  const raw = fs.readFileSync(requestPath, "utf8");
+
+  const request = JSON.parse(raw);
+
+  const id = path.parse(fileName).name;
+
+  const sessionId = request.sessionId || "default";
+
+  const sessionPath = path.join(SESSION_DIR, sessionId);
+
+  const statePath = path.join(sessionPath, "state.json");
+
+  if (!fs.existsSync(sessionPath)) {
+    fs.mkdirSync(sessionPath, { recursive: true });
+  }
+
+  console.log(`Processing browser request: ${id}`);
+
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu"
+    ]
+  });
+
+  let context;
+
+  if (fs.existsSync(statePath)) {
+    context = await browser.newContext({
+      storageState: statePath,
+      viewport: {
+        width: 1920,
+        height: 1080
+      },
+      deviceScaleFactor: 1,
+      isMobile: false
+    });
+  } else {
+    context = await browser.newContext({
+      viewport: {
+        width: 1920,
+        height: 1080
+      },
+      deviceScaleFactor: 1,
+      isMobile: false
+    });
+  }
+
+  const page = await context.newPage();
+
+  const result = {
+    id,
+    sessionId,
+    status: "success",
+    title: "",
+    url: "",
+    screenshot: `${id}.jpg`,
+    error: null,
+    createdAt: Date.now()
+  };
+
+  try {
+    const action = request.action || "open";
+
+    const targetUrl = request.url;
+
+    if (action === "open") {
+      if (!targetUrl) {
+        throw new Error("Missing request.url for open action");
+      }
+
+      await page.goto(targetUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000
+      });
+    }
+
+    if (action === "click") {
+      if (request.url) {
+        await page.goto(request.url, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        });
+      }
+
+      await sleep(1500);
+
+      if (
+        typeof request.x !== "number" ||
+        typeof request.y !== "number"
+      ) {
+        throw new Error("Missing click coordinates");
+      }
+
+      await page.mouse.click(request.x, request.y);
+
+      await sleep(2500);
+    }
+
+    // TYPE
+    if (action === "type") {
+      if (request.url) {
+        await page.goto(request.url, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        });
+      }
+
+      await sleep(1500);
+
+      if (!request.text) {
+        throw new Error("Missing text for type action");
+      }
+
+      await page.keyboard.type(request.text, {
+        delay: 20
+      });
+
+      await sleep(1500);
+    }
+
+    // PASTE TEXT
+    if (action === "paste_text") {
+      if (request.url) {
+        await page.goto(request.url, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        });
+      }
+
+      await sleep(1500);
+
+      if (!request.text) {
+        throw new Error("Missing text for paste_text action");
+      }
+
+      await page.evaluate((text) => {
+        const el = document.activeElement;
+
+        if (!el) {
+          return;
+        }
+
+        if (
+          el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA"
+        ) {
+          el.focus();
+
+          el.value = text;
+
+          el.dispatchEvent(
+            new Event("input", {
+              bubbles: true
+            })
+          );
+
+          el.dispatchEvent(
+            new Event("change", {
+              bubbles: true
+            })
+          );
+        }
+      }, request.text);
+
+      await sleep(1500);
+    }
+
+    const ready = await waitForPageReady(page, 15000);
+
+    if (!ready) {
+      console.log("Body not fully ready, continuing with fallback...");
+    }
+
+    await sleep(2000);
+
+    try {
+      await page
+        .locator("body")
+        .first()
+        .waitFor({
+          timeout: 5000,
+          state: "attached"
+        });
+    } catch (_) {}
+
+    await autoScroll(page);
+
+    await sleep(1500);
+
+    try {
+      result.title = await page.title();
+    } catch (_) {
+      result.title = "";
+    }
+
+    try {
+      result.url = page.url();
+    } catch (_) {
+      result.url = targetUrl || "";
+    }
+
+    await page.screenshot({
+      path: path.join(RESULT_DIR, `${id}.jpg`),
+      type: "jpeg",
+      quality: 60,
+      fullPage: true
+    });
+
+    await context.storageState({
+      path: statePath
+    });
+
+  } catch (err) {
+    result.status = "error";
+    result.error = err.message;
+  }
+
+  await browser.close();
+
+  fs.writeFileSync(
+    path.join(RESULT_DIR, `${id}.json`),
+    JSON.stringify(result, null, 2)
+  );
+
+  cleanupResults(5);
+
+  console.log(`Finished browser request: ${id}`);
+}
+
+async function main() {
+  const fileName = process.argv[2];
+
+  if (!fileName) {
+    console.error("No request file provided");
+    process.exit(1);
+  }
+
+  try {
+    await processRequest(fileName);
+  } catch (err) {
+    console.error("Browser worker failed:", err.message);
+    process.exit(1);
+  }
+}
+
+main();
