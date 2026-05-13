@@ -97,7 +97,8 @@ async function detectMainVideo(page, pageUrl) {
 
     try {
 
-      const url = response.url();
+      const url =
+        response.url();
 
       const lower =
         url.toLowerCase();
@@ -105,6 +106,7 @@ async function detectMainVideo(page, pageUrl) {
       const isMedia =
         lower.includes(".m3u8") ||
         lower.includes(".mp4") ||
+        lower.includes(".ts") ||
         lower.includes("playlist") ||
         lower.includes("master.m3u8") ||
         lower.includes("video");
@@ -122,7 +124,8 @@ async function detectMainVideo(page, pageUrl) {
       if (
         contentType.includes("video") ||
         lower.includes(".m3u8") ||
-        lower.includes(".mp4")
+        lower.includes(".mp4") ||
+        lower.includes(".ts")
       ) {
 
         mediaRequests.push({
@@ -242,51 +245,24 @@ async function detectMainVideo(page, pageUrl) {
 
 }
 
-async function getVideoDuration(url) {
+async function downloadFullVideo(mediaUrl, outputTemplate) {
 
-  try {
-
-    const cmd = `
-yt-dlp --dump-json "${url}"
+  const cmd = `
+yt-dlp \
+-f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
+--merge-output-format mp4 \
+--no-playlist \
+-o "${outputTemplate}" \
+"${mediaUrl}"
 `;
 
-    const output =
-      execSync(cmd, {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"]
-      });
+  console.log(cmd);
 
-    const json =
-      JSON.parse(output);
-
-    return Number(json.duration || 60);
-
-  } catch {
-
-    return 60;
-
-  }
+  execSync(cmd, {
+    stdio: "inherit"
+  });
 
 }
-
-    async function downloadFullVideo(mediaUrl, outputTemplate) {
-
-      const cmd = `
-    yt-dlp \
-    -f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
-    --merge-output-format mp4 \
-    -o "${outputTemplate}" \
-    "${mediaUrl}"
-    `;
-
-      console.log(cmd);
-
-      execSync(cmd, {
-        stdio: "inherit"
-      });
-
-    }
-
 
 async function processRequest(fileName) {
 
@@ -373,11 +349,11 @@ async function processRequest(fileName) {
         `${id}.%(ext)s`
       );
 
+    // دانلود کامل ویدئو
     await downloadFullVideo(
       mediaUrl,
       outputTemplate
     );
-
 
     const files =
       fs.readdirSync(tempDir);
@@ -410,6 +386,7 @@ async function processRequest(fileName) {
       finalPath
     );
 
+    // تقسیم به chunk های 90MB
     const chunks =
       chunkFile(finalPath, 90);
 
