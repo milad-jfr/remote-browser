@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { chromium } from "playwright";
+import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
 const RESULT_DIR = "./result";
@@ -13,376 +13,82 @@ if (!fs.existsSync(RESULT_DIR)) {
   fs.mkdirSync(RESULT_DIR, { recursive: true });
 }
 
+const OWNER = "milad-jfr";
+const REPO = "remote-browser";
+const BRANCH = "main";
+
+function sanitize(name) {
+
+  return (name || "video")
+    .replace(/[<>:"/\\|?*]+/g, "")
+    .replace(/\s+/g, "_")
+    .slice(0, 80);
+
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function detectStreamType(url) {
+function buildDownloadUrl(fileName) {
 
-  if (!url) {
-    return null;
-  }
-
-  const u = url.toLowerCase();
-
-  if (u.includes(".m3u8")) {
-    return "hls";
-  }
-
-  if (u.includes(".mpd")) {
-    return "dash";
-  }
-
-  if (u.includes(".mp4")) {
-    return "mp4";
-  }
-
-  if (u.startsWith("blob:")) {
-    return "blob";
-  }
-
-  return "unknown";
-}
-
-function isYoutube(url) {
-
-  if (!url) {
-    return false;
-  }
-
-  return (
-    url.includes("youtube.com") ||
-    url.includes("youtu.be")
-  );
-}
-
-function isPornhub(url) {
-
-  if (!url) {
-    return false;
-  }
-
-  return url.includes("pornhub.com");
-}
-
-function uniqueVideos(videos) {
-
-  const map = new Map();
-
-  for (const video of videos) {
-
-    if (!video?.url) {
-      continue;
-    }
-
-    if (!map.has(video.url)) {
-      map.set(video.url, video);
-    }
-
-  }
-
-  return [...map.values()];
-}
-
-async function safeGoto(page, url) {
-
-  try {
-
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-      timeout: 90000
-    });
-
-  } catch (err) {
-
-    console.log("Primary goto failed:", err.message);
-
-    await page.goto(url, {
-      waitUntil: "load",
-      timeout: 90000
-    });
-
-  }
+  return `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/result/${fileName}`;
 
 }
 
-async function extractYoutube(page) {
+function chunkFile(filePath, chunkSizeMB = 90) {
 
-  try {
+  const stats = fs.statSync(filePath);
 
-    const data = await page.evaluate(() => {
+  const maxSize =
+    chunkSizeMB * 1024 * 1024;
 
-      const result = {
-        title: null,
-        formats: []
-      };
+  if (stats.size <= maxSize) {
 
-      const player =
-        window.ytInitialPlayerResponse ||
-        null;
-
-      if (!player) {
-        return null;
-      }
-
-      result.title =
-        player?.videoDetails?.title ||
-        document.title ||
-        null;
-
-      const streams = [
-        ...(player?.streamingData?.formats || []),
-        ...(player?.streamingData?.adaptiveFormats || [])
-      ];
-
-      for (const stream of streams) {
-
-        const video = {
-          url: null,
-          mimeType: stream.mimeType || null,
-          quality:
-            stream.qualityLabel ||
-            stream.quality ||
-            null,
-          bitrate: stream.bitrate || null,
-          hasAudio:
-            !!stream.audioQuality,
-          hasVideo:
-            !!stream.qualityLabel
-        };
-
-        // direct usable URL
-        if (stream.url) {
-          video.url = stream.url;
-        }
-
-        // ciphered URL (cannot fully decode without yt-dlp style logic)
-        if (!video.url && stream.signatureCipher) {
-
-          try {
-
-            const params = new URLSearchParams(
-              stream.signatureCipher
-            );
-
-            const cipherUrl = params.get("url");
-
-            if (cipherUrl) {
-              video.url = cipherUrl;
-            }
-
-          } catch {}
-
-        }
-
-        if (video.url) {
-          result.formats.push(video);
-        }
-
-      }
-
-      return result;
-
-    });
-
-    return data;
-
-  } catch (err) {
-
-    console.log("YouTube extractor failed:", err.message);
-
-    return null;
+    return [filePath];
 
   }
 
-}
+  const buffer =
+    fs.readFileSync(filePath);
 
-async function extractPornhub(page) {
+  const dir =
+    path.dirname(filePath);
 
-  try {
+  const ext =
+    path.extname(filePath);
 
-    const data = await page.evaluate(() => {
+  const base =
+    path.basename(filePath, ext);
 
-      const result = {
-        title: document.title || null,
-        formats: []
-      };
+  const chunks = [];
 
-      const scripts = [
-        ...document.querySelectorAll("script")
-      ];
+  let offset = 0;
+  let index = 1;
 
-      for (const script of scripts) {
+  while (offset < buffer.length) {
 
-        const text = script.innerText;
+    const chunk =
+      buffer.slice(offset, offset + maxSize);
 
-        if (
-          !text.includes("flashvars") &&
-          !text.includes("mediaDefinitions")
-        ) {
-          continue;
-        }
+    const chunkName =
+      `${base}.part${index}${ext}`;
 
-        // -------------------------
-        // Try mediaDefinitions JSON
-        // -------------------------
+    const chunkPath =
+      path.join(dir, chunkName);
 
-        try {
+    fs.writeFileSync(chunkPath, chunk);
 
-          const mediaMatch =
-            text.match(
-              /"mediaDefinitions":(\[[\s\S]*?\])/i
-            );
+    chunks.push(chunkPath);
 
-          if (mediaMatch) {
-
-            const defs = JSON.parse(
-              mediaMatch[1]
-            );
-
-            for (const item of defs) {
-
-              if (!item.videoUrl) {
-                continue;
-              }
-
-              result.formats.push({
-                url: item.videoUrl,
-                quality: item.quality || null,
-                format: item.format || null
-              });
-
-            }
-
-          }
-
-        } catch {}
-
-        // -------------------------
-        // flashvars parser
-        // -------------------------
-
-        try {
-
-          const flashvarsMatch =
-            text.match(
-              /flashvars_\d+\s*=\s*(\{[\s\S]*?\});/
-            );
-
-          if (flashvarsMatch) {
-
-            const json = JSON.parse(
-              flashvarsMatch[1]
-            );
-
-            if (json.mediaDefinitions) {
-
-              for (const item of json.mediaDefinitions) {
-
-                if (!item.videoUrl) {
-                  continue;
-                }
-
-                result.formats.push({
-                  url: item.videoUrl,
-                  quality: item.quality || null,
-                  format: item.format || null
-                });
-
-              }
-
-            }
-
-          }
-
-        } catch {}
-
-      }
-
-      return result;
-
-    });
-
-    return data;
-
-  } catch (err) {
-
-    console.log("Pornhub extractor failed:", err.message);
-
-    return null;
+    offset += maxSize;
+    index++;
 
   }
 
-}
+  fs.unlinkSync(filePath);
 
-async function extractGenericVideos(page) {
-
-  try {
-
-    const data = await page.evaluate(() => {
-
-      const videos = [
-        ...document.querySelectorAll("video")
-      ];
-
-      const results = [];
-
-      for (const v of videos) {
-
-        if (
-          v.currentSrc &&
-          !v.currentSrc.startsWith("blob:")
-        ) {
-
-          results.push({
-            url: v.currentSrc
-          });
-
-        }
-
-        if (
-          v.src &&
-          !v.src.startsWith("blob:")
-        ) {
-
-          results.push({
-            url: v.src
-          });
-
-        }
-
-        const sources = [
-          ...v.querySelectorAll("source")
-        ];
-
-        for (const s of sources) {
-
-          if (
-            s.src &&
-            !s.src.startsWith("blob:")
-          ) {
-
-            results.push({
-              url: s.src
-            });
-
-          }
-
-        }
-
-      }
-
-      return results;
-
-    });
-
-    return data || [];
-
-  } catch {
-
-    return [];
-
-  }
+  return chunks;
 
 }
 
@@ -391,100 +97,18 @@ async function processRequest(fileName) {
   const requestPath =
     path.join(REQUEST_DIR, fileName);
 
-  const raw =
-    fs.readFileSync(requestPath, "utf8");
-
-  const request = JSON.parse(raw);
+  const request =
+    JSON.parse(
+      fs.readFileSync(requestPath, "utf8")
+    );
 
   const id =
     path.parse(fileName).name;
 
-  console.log(`Processing video request: ${id}`);
-
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
-  });
-
-  const context =
-    await browser.newContext({
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-    });
-
-  const page = await context.newPage();
-
-  const mediaRequests = [];
-
-  // ===================================
-  // NETWORK MONITOR
-  // ===================================
-
-  page.on("request", req => {
-
-    try {
-
-      const reqUrl =
-        req.url().toLowerCase();
-
-      const type =
-        req.resourceType();
-
-      if (
-
-        type === "media" ||
-
-        reqUrl.includes(".mp4") ||
-        reqUrl.includes(".m3u8") ||
-        reqUrl.includes(".mpd") ||
-        reqUrl.includes(".ts") ||
-
-        reqUrl.includes("videoplayback") ||
-        reqUrl.includes("playlist") ||
-        reqUrl.includes("segment") ||
-        reqUrl.includes("manifest")
-
-      ) {
-
-        mediaRequests.push({
-          type,
-          method: req.method(),
-          url: req.url()
-        });
-
-      }
-
-    } catch {}
-
-  });
-
   const result = {
-
-    id,
-
-    createdAt: Date.now(),
-
-    pageUrl: null,
-
+    success: false,
     title: null,
-
-    siteType: "generic",
-
-    videoDetected: false,
-
-    videos: [],
-
-    mediaRequests: [],
-
+    downloads: [],
     error: null
   };
 
@@ -494,172 +118,83 @@ async function processRequest(fileName) {
       throw new Error("Missing URL");
     }
 
-    // ===================================
-    // OPEN PAGE
-    // ===================================
+    const tempDir =
+      path.join(RESULT_DIR, `tmp_${id}`);
 
-    await safeGoto(page, request.url);
+    fs.mkdirSync(tempDir, {
+      recursive: true
+    });
 
-    await sleep(6000);
+    const outputTemplate =
+      path.join(
+        tempDir,
+        `${id}.%(ext)s`
+      );
 
-    result.pageUrl = page.url();
+    // دانلود کیفیت نزدیک 240
+    const cmd = `
+yt-dlp \
+-f "bestvideo[height<=240]+bestaudio/best[height<=240]/best" \
+--merge-output-format mp4 \
+-o "${outputTemplate}" \
+"${request.url}"
+`;
 
-    try {
-      result.title = await page.title();
-    } catch {}
+    execSync(cmd, {
+      stdio: "inherit"
+    });
 
-    // ===================================
-    // SITE DETECTION
-    // ===================================
+    const files =
+      fs.readdirSync(tempDir);
 
-    let extracted = null;
-
-    // ===================================
-    // YOUTUBE
-    // ===================================
-
-    if (isYoutube(result.pageUrl)) {
-
-      result.siteType = "youtube";
-
-      console.log("Using YouTube extractor");
-
-      extracted =
-        await extractYoutube(page);
-
+    if (!files.length) {
+      throw new Error("download failed");
     }
 
-    // ===================================
-    // PORNHUB
-    // ===================================
+    const downloadedFile =
+      path.join(tempDir, files[0]);
 
-    else if (isPornhub(result.pageUrl)) {
+    const finalName =
+      `${id}-${sanitize(files[0])}`;
 
-      result.siteType = "pornhub";
+    const finalPath =
+      path.join(
+        RESULT_DIR,
+        finalName
+      );
 
-      console.log("Using Pornhub extractor");
+    fs.renameSync(
+      downloadedFile,
+      finalPath
+    );
 
-      extracted =
-        await extractPornhub(page);
+    const chunks =
+      chunkFile(finalPath, 90);
 
-    }
+    for (const chunk of chunks) {
 
-    // ===================================
-    // EXTRACTED FORMATS
-    // ===================================
+      const name =
+        path.basename(chunk);
 
-    if (
-      extracted &&
-      extracted.formats &&
-      extracted.formats.length
-    ) {
-
-      for (const item of extracted.formats) {
-
-        if (!item.url) {
-          continue;
-        }
-
-        result.videos.push({
-
-          url: item.url,
-
-          quality:
-            item.quality || null,
-
-          mimeType:
-            item.mimeType || null,
-
-          bitrate:
-            item.bitrate || null,
-
-          hasAudio:
-            item.hasAudio || false,
-
-          hasVideo:
-            item.hasVideo || false,
-
-          streamType:
-            detectStreamType(item.url)
-
-        });
-
-      }
-
-    }
-
-    // ===================================
-    // GENERIC VIDEO DETECTION
-    // ===================================
-
-    const genericVideos =
-      await extractGenericVideos(page);
-
-    for (const item of genericVideos) {
-
-      result.videos.push({
-
-        url: item.url,
-
-        quality: null,
-
-        mimeType: null,
-
-        bitrate: null,
-
-        streamType:
-          detectStreamType(item.url)
-
+      result.downloads.push({
+        file: name,
+        url: buildDownloadUrl(name)
       });
 
     }
 
-    // ===================================
-    // NETWORK FALLBACK
-    // ===================================
+    result.success = true;
 
-    for (const req of mediaRequests) {
-
-      result.videos.push({
-
-        url: req.url,
-
-        quality: null,
-
-        mimeType: null,
-
-        bitrate: null,
-
-        streamType:
-          detectStreamType(req.url)
-
-      });
-
-    }
-
-    // ===================================
-    // CLEANUP
-    // ===================================
-
-    result.mediaRequests = mediaRequests;
-
-    result.videos =
-      uniqueVideos(result.videos);
-
-    result.videoDetected =
-      result.videos.length > 0;
+    fs.rmSync(tempDir, {
+      recursive: true,
+      force: true
+    });
 
   } catch (err) {
 
     result.error = err.message;
 
   }
-
-  await browser.close();
-
-  // ===================================
-  // SAVE RESULT
-  // ===================================
 
   fs.writeFileSync(
     path.join(
@@ -683,6 +218,7 @@ async function main() {
     );
 
     process.exit(1);
+
   }
 
   try {
@@ -697,6 +233,7 @@ async function main() {
     );
 
     process.exit(1);
+
   }
 
 }
