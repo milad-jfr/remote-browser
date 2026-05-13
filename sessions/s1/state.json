@@ -291,16 +291,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "d_b",
-      "value": "1",
-      "domain": ".pornhub.com",
-      "path": "/",
-      "expires": 1778687629,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
       "name": "rp",
       "value": "1149592973:vmkTOfjiynI=",
       "domain": "www.pornhub.com",
@@ -349,9 +339,108 @@
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-YNID",
+      "value": "18.YT=VFmvQgbtvYPYLMp4EkTBiGnqS1fcO7rBHpLww5pG14tWWjYgkPoQO-TldiS4GAf7M7JLtDxYZ3s3z70yn58T8TslPwUG07gH3Mt7102lhc1GwvN9t0AfpctViv9ZLSVmQ95x0RC00U7XMOSK1RYTpeCKdt2cdqTJbOHSdEJ-aQci0sO6L_OhB8ouv8EqUDeWavtxvxMceC-Qz6XZLEUg9W36R_NeQc1TLlQbJRnS4jQ04RuaKkU9ERm1yatetbLJ853I4N_6tsgLtVarj-VUpKNiZU2NKD08wNx0MlrCQ08TNZOF3aHKaFlH5P4fSEp6NG_h7S3X6zIj-wh3Jmb6eg",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1794241558.195263,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "https://youtube.com",
+      "_crHasCrossSiteAncestor": false
+    },
+    {
+      "name": "GPS",
+      "value": "1",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1778691359.195358,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "YSC",
+      "value": "HUNs4AZuQog",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "VISITOR_INFO1_LIVE",
+      "value": "EJVavCvrfts",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1794241559.195432,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "VISITOR_PRIVACY_METADATA",
+      "value": "CgJVUxIEGgAgDg%3D%3D",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1794241559.195467,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "PREF",
+      "value": "tz=UTC",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1813249560.419178,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-ROLLOUT_TOKEN",
+      "value": "CPbI_KjVq4_q9wEQg9vT-ta2lAMY7Yqj-9a2lAM%3D",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1794241560.372345,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "https://youtube.com",
+      "_crHasCrossSiteAncestor": false
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.youtube.com",
+      "localStorage": [
+        {
+          "name": "yt-remote-connected-devices",
+          "value": "{\"data\":\"[]\",\"expiration\":1778775960966,\"creation\":1778689560966}"
+        },
+        {
+          "name": "ytidb::LAST_RESULT_ENTRY_KEY",
+          "value": "{\"data\":{\"hasSucceededOnce\":true},\"expiration\":1781281560270,\"creation\":1778689560271}"
+        },
+        {
+          "name": "Vec0e4e5e||::yt-player::yt-player-lv",
+          "value": "{\"data\":\"{}\",\"creation\":1778689561003}"
+        },
+        {
+          "name": "yt-remote-device-id",
+          "value": "{\"data\":\"e592c636-b725-42c1-a091-81cf5f9ba9ae\",\"expiration\":1810225560962,\"creation\":1778689560962}"
+        },
+        {
+          "name": "yt-icons-last-purged",
+          "value": "1774715160118"
+        }
+      ]
+    },
     {
       "origin": "https://beeg.com",
       "localStorage": [
