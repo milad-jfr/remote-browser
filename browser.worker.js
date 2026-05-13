@@ -23,6 +23,7 @@ function sleep(ms) {
 }
 
 function cleanupResults(maxResults = 5) {
+
   const resultJsonFiles = fs.readdirSync(RESULT_DIR)
     .filter(file => file.endsWith(".json"))
     .sort();
@@ -37,10 +38,14 @@ function cleanupResults(maxResults = 5) {
   );
 
   for (const file of filesToDelete) {
+
     const id = path.parse(file).name;
 
-    const jsonPath = path.join(RESULT_DIR, `${id}.json`);
-    const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
+    const jsonPath =
+      path.join(RESULT_DIR, `${id}.json`);
+
+    const imagePath =
+      path.join(RESULT_DIR, `${id}.jpg`);
 
     if (fs.existsSync(jsonPath)) {
       fs.unlinkSync(jsonPath);
@@ -54,21 +59,33 @@ function cleanupResults(maxResults = 5) {
   }
 }
 
-async function waitForPageReady(page, timeout = 20000) {
+async function waitForPageReady(
+  page,
+  timeout = 20000
+) {
+
   const start = Date.now();
 
-  // 1) منتظر DOM پایه
   try {
-    await page.waitForLoadState("domcontentloaded", { timeout });
+
+    await page.waitForLoadState(
+      "domcontentloaded",
+      { timeout }
+    );
+
   } catch (_) {}
 
-  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
+
     try {
-      const bodyExists = await page.locator("body").count();
+
+      const bodyExists =
+        await page.locator("body").count();
+
       if (bodyExists > 0) {
         return true;
       }
+
     } catch (_) {}
 
     await sleep(300);
@@ -78,88 +95,269 @@ async function waitForPageReady(page, timeout = 20000) {
 }
 
 async function autoScroll(page) {
+
   try {
+
     await page.evaluate(async () => {
+
       if (!document.body) {
         return;
       }
 
       await new Promise((resolve) => {
+
         let totalHeight = 0;
+
         const distance = 1000;
+
         const timer = setInterval(() => {
+
           try {
-            const scrollHeight = document.body ? document.body.scrollHeight : 0;
+
+            const scrollHeight =
+              document.body
+                ? document.body.scrollHeight
+                : 0;
+
             window.scrollBy(0, distance);
+
             totalHeight += distance;
 
             if (totalHeight >= scrollHeight) {
+
               clearInterval(timer);
+
               window.scrollTo(0, 0);
+
               resolve();
             }
-          } catch (e) {
+
+          } catch (_) {
+
             clearInterval(timer);
+
             resolve();
           }
+
         }, 250);
+
       });
+
     });
+
   } catch (err) {
-    console.log("autoScroll skipped:", err.message);
+
+    console.log(
+      "autoScroll skipped:",
+      err.message
+    );
   }
 }
 
-async function processRequest(fileName) {
-  const requestPath = path.join(REQUEST_DIR, fileName);
-  const raw = fs.readFileSync(requestPath, "utf8");
-  const request = JSON.parse(raw);
+async function restoreLastClick(
+  page,
+  sessionPath
+) {
 
-  const id = path.parse(fileName).name;
-  const sessionId = request.sessionId || "default";
-  const sessionPath = path.join(SESSION_DIR, sessionId);
-  const statePath = path.join(sessionPath, "state.json");
+  const lastClickPath =
+    path.join(
+      sessionPath,
+      "last-click.json"
+    );
 
-  if (!fs.existsSync(sessionPath)) {
-    fs.mkdirSync(sessionPath, { recursive: true });
+  if (!fs.existsSync(lastClickPath)) {
+    return;
   }
 
-  console.log(`Processing browser request: ${id}`);
+  try {
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
-  });
+    const lastClick =
+      JSON.parse(
+        fs.readFileSync(
+          lastClickPath,
+          "utf8"
+        )
+      );
+
+    if (
+      typeof lastClick.x === "number" &&
+      typeof lastClick.y === "number"
+    ) {
+
+      await page.mouse.click(
+        lastClick.x,
+        lastClick.y
+      );
+
+      await sleep(500);
+    }
+
+  } catch (_) {}
+}
+
+async function injectText(
+  page,
+  text
+) {
+
+  await page.evaluate((value) => {
+
+    const el =
+      document.activeElement;
+
+    if (!el) {
+      return;
+    }
+
+    const tag =
+      el.tagName.toLowerCase();
+
+    const isEditable =
+      tag === "input" ||
+      tag === "textarea" ||
+      el.isContentEditable;
+
+    if (!isEditable) {
+      return;
+    }
+
+    if (el.isContentEditable) {
+
+      el.focus();
+
+      document.execCommand(
+        "insertText",
+        false,
+        value
+      );
+
+    } else {
+
+      el.focus();
+
+      const start =
+        el.selectionStart ??
+        el.value.length;
+
+      const end =
+        el.selectionEnd ??
+        el.value.length;
+
+      const current =
+        el.value || "";
+
+      el.value =
+        current.slice(0, start) +
+        value +
+        current.slice(end);
+
+      const pos =
+        start + value.length;
+
+      el.selectionStart = pos;
+      el.selectionEnd = pos;
+    }
+
+    el.dispatchEvent(
+      new InputEvent("input", {
+        bubbles: true,
+        inputType: "insertText",
+        data: value
+      })
+    );
+
+    el.dispatchEvent(
+      new Event("change", {
+        bubbles: true
+      })
+    );
+
+  }, text);
+}
+
+async function processRequest(fileName) {
+
+  const requestPath =
+    path.join(REQUEST_DIR, fileName);
+
+  const raw =
+    fs.readFileSync(
+      requestPath,
+      "utf8"
+    );
+
+  const request =
+    JSON.parse(raw);
+
+  const id =
+    path.parse(fileName).name;
+
+  const sessionId =
+    request.sessionId || "default";
+
+  const sessionPath =
+    path.join(
+      SESSION_DIR,
+      sessionId
+    );
+
+  const statePath =
+    path.join(
+      sessionPath,
+      "state.json"
+    );
+
+  if (!fs.existsSync(sessionPath)) {
+    fs.mkdirSync(sessionPath, {
+      recursive: true
+    });
+  }
+
+  console.log(
+    `Processing browser request: ${id}`
+  );
+
+  const browser =
+    await chromium.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu"
+      ]
+    });
 
   let context;
 
   if (fs.existsSync(statePath)) {
-    context = await browser.newContext({
-      storageState: statePath,
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
-      deviceScaleFactor: 1,
-      isMobile: false
-    });
+
+    context =
+      await browser.newContext({
+        storageState: statePath,
+        viewport: {
+          width: 1920,
+          height: 1080
+        },
+        deviceScaleFactor: 1,
+        isMobile: false
+      });
+
   } else {
-    context = await browser.newContext({
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
-      deviceScaleFactor: 1,
-      isMobile: false
-    });
+
+    context =
+      await browser.newContext({
+        viewport: {
+          width: 1920,
+          height: 1080
+        },
+        deviceScaleFactor: 1,
+        isMobile: false
+      });
   }
 
-  const page = await context.newPage();
+  const page =
+    await context.newPage();
 
   const result = {
     id,
@@ -173,12 +371,19 @@ async function processRequest(fileName) {
   };
 
   try {
-    const action = request.action || "open";
-    const targetUrl = request.url;
+
+    const action =
+      request.action || "open";
+
+    const targetUrl =
+      request.url;
 
     if (action === "open") {
+
       if (!targetUrl) {
-        throw new Error("Missing request.url for open action");
+        throw new Error(
+          "Missing request.url for open action"
+        );
       }
 
       await page.goto(targetUrl, {
@@ -188,7 +393,9 @@ async function processRequest(fileName) {
     }
 
     if (action === "click") {
+
       if (request.url) {
+
         await page.goto(request.url, {
           waitUntil: "domcontentloaded",
           timeout: 60000
@@ -197,43 +404,120 @@ async function processRequest(fileName) {
 
       await sleep(1500);
 
-      if (typeof request.x !== "number" || typeof request.y !== "number") {
-        throw new Error("Missing click coordinates");
+      if (
+        typeof request.x !== "number" ||
+        typeof request.y !== "number"
+      ) {
+
+        throw new Error(
+          "Missing click coordinates"
+        );
       }
 
-      await page.mouse.click(request.x, request.y);
+      await page.mouse.click(
+        request.x,
+        request.y
+      );
+
+      fs.writeFileSync(
+        path.join(
+          sessionPath,
+          "last-click.json"
+        ),
+        JSON.stringify({
+          x: request.x,
+          y: request.y
+        })
+      );
+
       await sleep(2500);
     }
 
-    const ready = await waitForPageReady(page, 15000);
+    if (action === "paste_text") {
+
+      if (request.url) {
+
+        await page.goto(request.url, {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        });
+      }
+
+      await sleep(1500);
+
+      await restoreLastClick(
+        page,
+        sessionPath
+      );
+
+      const text =
+        request.text || "";
+
+      await injectText(
+        page,
+        text
+      );
+
+      await sleep(1000);
+    }
+
+    const ready =
+      await waitForPageReady(
+        page,
+        15000
+      );
+
     if (!ready) {
-      console.log("Body not fully ready, continuing with fallback...");
+
+      console.log(
+        "Body not fully ready, continuing with fallback..."
+      );
     }
 
     await sleep(2000);
 
-    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
+
+      await page
+        .locator("body")
+        .first()
+        .waitFor({
+          timeout: 5000,
+          state: "attached"
+        });
+
     } catch (_) {}
 
     await autoScroll(page);
+
     await sleep(1500);
 
     try {
-      result.title = await page.title();
+
+      result.title =
+        await page.title();
+
     } catch (_) {
+
       result.title = "";
     }
 
     try {
-      result.url = page.url();
+
+      result.url =
+        page.url();
+
     } catch (_) {
-      result.url = targetUrl || "";
+
+      result.url =
+        targetUrl || "";
     }
 
     await page.screenshot({
-      path: path.join(RESULT_DIR, `${id}.jpg`),
+      path: path.join(
+        RESULT_DIR,
+        `${id}.jpg`
+      ),
       type: "jpeg",
       quality: 60,
       fullPage: true
@@ -244,34 +528,59 @@ async function processRequest(fileName) {
     });
 
   } catch (err) {
+
     result.status = "error";
-    result.error = err.message;
+
+    result.error =
+      err.message;
   }
 
   await browser.close();
 
   fs.writeFileSync(
-    path.join(RESULT_DIR, `${id}.json`),
-    JSON.stringify(result, null, 2)
+    path.join(
+      RESULT_DIR,
+      `${id}.json`
+    ),
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
   );
 
   cleanupResults(5);
 
-  console.log(`Finished browser request: ${id}`);
+  console.log(
+    `Finished browser request: ${id}`
+  );
 }
 
 async function main() {
-  const fileName = process.argv[2];
+
+  const fileName =
+    process.argv[2];
 
   if (!fileName) {
-    console.error("No request file provided");
+
+    console.error(
+      "No request file provided"
+    );
+
     process.exit(1);
   }
 
   try {
+
     await processRequest(fileName);
+
   } catch (err) {
-    console.error("Browser worker failed:", err.message);
+
+    console.error(
+      "Browser worker failed:",
+      err.message
+    );
+
     process.exit(1);
   }
 }
