@@ -1,0 +1,9 @@
+{
+  "id": "1778657992592",
+  "sessionId": "s1",
+  "status": "error",
+  "title": "",
+  "screenshot": "1778657992592.jpg",
+  "error": "page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('body') to be visible\n    34 × locator resolved to hidden <body dir=\"ltr\" rounded-container=\"\">…</body>\n",
+  "createdAt": 1778658013197
+}
