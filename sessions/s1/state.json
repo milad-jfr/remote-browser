@@ -391,16 +391,6 @@
       "sameSite": "Lax"
     },
     {
-      "name": "NID",
-      "value": "531=iyB8Mg3GSduAPmOh-c1gRBo0p1pvmUXiUEbVMq37FvKti6pUtaxNjWSwHcpgqVeT2CKhSRe3lnE9H44CZK5fgpX7kjkX8apKcKcd1VgVQCUPS5P4mAES8PVQQ8fulmZEFmJxrxL8eJ0IuxYdfkNMQF3V2LyOuze1LY-8kbpwGtaxx0lT8jTVCpgHPiIqgw9Ym179pYL35sktyJjyTUjiZ9yKGUOzvsWsVv9dqeYgwiaKW_JbBMU",
-      "domain": ".google.com",
-      "path": "/",
-      "expires": 1794437164.412798,
-      "httpOnly": true,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
       "name": "__Host-GAPS",
       "value": "1:N3oYtEyqhycp6KflOjzMjd-xc78dcg:hwwiR4_URP23mVlK",
       "domain": "accounts.google.com",
@@ -449,9 +439,38 @@
       "httpOnly": false,
       "secure": true,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-STRP",
+      "value": "AEEP7gL67prBS2KHJLcKdNKV2_T1ofTfockqFX-l-1svaeDmU2zD5hV1jXCj4t5psh0HNs0aEvKgAshlYnITeTEEvVS6cooELuV6",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1778658290.595141,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "NID",
+      "value": "531=lKhYxLD71LIXOw7s6PkIZZtsa3sbAyg3FswVaDqfqkbkLD0aeCRcm_wkr3X0OmoLtyKs_MRP4DU4bWzlAc7XXjRUtKcCdKyDAu50ki_fv3A074M8-ibHJCOD0AhP5uEL0nZIpR7kyPZyTt6ua4nuCDi0H1JpGhB39lJPAAiRaWOTb2FITVWOpRpVF8arW7eD2iID_AfIbamUmUsUEuYBVD7OHNaMV7Y5C0xOH4Gu3UPfn_fcEcM",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1794437164.595259,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "sb_wiz.zpc.gws-wiz.",
+          "value": "{\"0\":[[\"sally field remarkably bright creatures\",46,[3,143,362],{\"zh\":\"sally field remarkably bright creatures\",\"zl\":8,\"zp\":{\"gs_ssp\":\"eJzj4tVP1zc0zC2KTys3K0szYPRSL07MyalUSMtMzUlRKErNTSzKTkzKqVRIKspMzyhRSC5KTSwpLUotBgAgDxQv\"},\"zf\":33,\"zi\":\"Remarkably Bright Creatures — 2026 film\",\"lm\":[],\"zs\":\"data:image/jpeg;base64,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\"}],[\"mcdonalds food contamination\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"antoinette webb beetle allergic reaction\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"ohio state football uniforms\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"rockstar games gta 6 trailer 3\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"audemars piguet swatch watches royal pop\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"lirr strike update\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"nebraska primary elections\",0,[3,143,362],{\"zl\":8,\"zp\":{\"gs_ss\":\"1\"},\"zf\":33}],[\"world cup mexico jersey\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"marvel rivals season 8 patch notes\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"13080951122715721713\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+        }
+      ]
+    },
     {
       "origin": "https://www.facebook.com",
       "localStorage": [
@@ -470,15 +489,6 @@
         {
           "name": "banzai:last_storage_flush",
           "value": "1778657957584.2"
-        }
-      ]
-    },
-    {
-      "origin": "https://www.google.com",
-      "localStorage": [
-        {
-          "name": "sb_wiz.zpc.gws-wiz.",
-          "value": "{\"0\":[[\"california governor race\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"recalls\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"pearl abyss crimson desert patch notes\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"cavs pistons game\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"fitbit air fitness band\",0,[3,143,362],{\"zl\":8,\"zf\":33,\"zp\":{\"gs_ss\":\"1\"}}],[\"spacex rocket launch\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"el niño weather\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"polycystic ovary syndrome\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zf\":33,\"zl\":8}],[\"state record largemouth bass\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"texas roadhouse menu price hike\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}]],\"1\":{\"av\":\"16014692172882423962\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
         }
       ]
     },
