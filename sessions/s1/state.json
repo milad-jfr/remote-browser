@@ -853,6 +853,16 @@
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
+    },
+    {
+      "name": "__cf_bm",
+      "value": "sdFScc8CzSnVbr1DFlLCkfmH4YPIQyXlFwcQbq92YQs-1778676969.9701688-1.0.1.1-iaCRVaXTYL.DvcNahcachGfwawWJFuuXGsI0g7JWbmbL51y_8CkIdVClT5DhAfy_JiSgBzODk5AN9Xdxa7TQZYwm_yQMJFDCqSUIeqfdex5afP.q0_TSXwpXJydrLmXn",
+      "domain": ".chatgpt.com",
+      "path": "/",
+      "expires": 1778678769.986246,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
     }
   ],
   "origins": [
@@ -1030,6 +1040,15 @@
         {
           "name": "caa_feta_onetap_users_migrated",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "origin": "https://challenges.cloudflare.com",
+      "localStorage": [
+        {
+          "name": "cf.turnstile.u",
+          "value": "IT0wUdjvP.5CeeKaBFgFcu._8bE9faScSMIOyOxoORU-1778676970-1.3.1.1-se7CTzXtVKrxEdpzIiEFSDPyuDwe72.F48X3ql3t2zkIZTBV5uIER3t1HBTzaFqgpNyNcjiejW_F4s8vgZ7i0g"
         }
       ]
     }
