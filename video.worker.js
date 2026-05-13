@@ -44,15 +44,360 @@ function detectStreamType(url) {
   return "unknown";
 }
 
+function isYoutube(url) {
+
+  if (!url) {
+    return false;
+  }
+
+  return (
+    url.includes("youtube.com") ||
+    url.includes("youtu.be")
+  );
+}
+
+function isPornhub(url) {
+
+  if (!url) {
+    return false;
+  }
+
+  return url.includes("pornhub.com");
+}
+
+function uniqueVideos(videos) {
+
+  const map = new Map();
+
+  for (const video of videos) {
+
+    if (!video?.url) {
+      continue;
+    }
+
+    if (!map.has(video.url)) {
+      map.set(video.url, video);
+    }
+
+  }
+
+  return [...map.values()];
+}
+
+async function safeGoto(page, url) {
+
+  try {
+
+    await page.goto(url, {
+      waitUntil: "domcontentloaded",
+      timeout: 90000
+    });
+
+  } catch (err) {
+
+    console.log("Primary goto failed:", err.message);
+
+    await page.goto(url, {
+      waitUntil: "load",
+      timeout: 90000
+    });
+
+  }
+
+}
+
+async function extractYoutube(page) {
+
+  try {
+
+    const data = await page.evaluate(() => {
+
+      const result = {
+        title: null,
+        formats: []
+      };
+
+      const player =
+        window.ytInitialPlayerResponse ||
+        null;
+
+      if (!player) {
+        return null;
+      }
+
+      result.title =
+        player?.videoDetails?.title ||
+        document.title ||
+        null;
+
+      const streams = [
+        ...(player?.streamingData?.formats || []),
+        ...(player?.streamingData?.adaptiveFormats || [])
+      ];
+
+      for (const stream of streams) {
+
+        const video = {
+          url: null,
+          mimeType: stream.mimeType || null,
+          quality:
+            stream.qualityLabel ||
+            stream.quality ||
+            null,
+          bitrate: stream.bitrate || null,
+          hasAudio:
+            !!stream.audioQuality,
+          hasVideo:
+            !!stream.qualityLabel
+        };
+
+        // direct usable URL
+        if (stream.url) {
+          video.url = stream.url;
+        }
+
+        // ciphered URL (cannot fully decode without yt-dlp style logic)
+        if (!video.url && stream.signatureCipher) {
+
+          try {
+
+            const params = new URLSearchParams(
+              stream.signatureCipher
+            );
+
+            const cipherUrl = params.get("url");
+
+            if (cipherUrl) {
+              video.url = cipherUrl;
+            }
+
+          } catch {}
+
+        }
+
+        if (video.url) {
+          result.formats.push(video);
+        }
+
+      }
+
+      return result;
+
+    });
+
+    return data;
+
+  } catch (err) {
+
+    console.log("YouTube extractor failed:", err.message);
+
+    return null;
+
+  }
+
+}
+
+async function extractPornhub(page) {
+
+  try {
+
+    const data = await page.evaluate(() => {
+
+      const result = {
+        title: document.title || null,
+        formats: []
+      };
+
+      const scripts = [
+        ...document.querySelectorAll("script")
+      ];
+
+      for (const script of scripts) {
+
+        const text = script.innerText;
+
+        if (
+          !text.includes("flashvars") &&
+          !text.includes("mediaDefinitions")
+        ) {
+          continue;
+        }
+
+        // -------------------------
+        // Try mediaDefinitions JSON
+        // -------------------------
+
+        try {
+
+          const mediaMatch =
+            text.match(
+              /"mediaDefinitions":(\[[\s\S]*?\])/i
+            );
+
+          if (mediaMatch) {
+
+            const defs = JSON.parse(
+              mediaMatch[1]
+            );
+
+            for (const item of defs) {
+
+              if (!item.videoUrl) {
+                continue;
+              }
+
+              result.formats.push({
+                url: item.videoUrl,
+                quality: item.quality || null,
+                format: item.format || null
+              });
+
+            }
+
+          }
+
+        } catch {}
+
+        // -------------------------
+        // flashvars parser
+        // -------------------------
+
+        try {
+
+          const flashvarsMatch =
+            text.match(
+              /flashvars_\d+\s*=\s*(\{[\s\S]*?\});/
+            );
+
+          if (flashvarsMatch) {
+
+            const json = JSON.parse(
+              flashvarsMatch[1]
+            );
+
+            if (json.mediaDefinitions) {
+
+              for (const item of json.mediaDefinitions) {
+
+                if (!item.videoUrl) {
+                  continue;
+                }
+
+                result.formats.push({
+                  url: item.videoUrl,
+                  quality: item.quality || null,
+                  format: item.format || null
+                });
+
+              }
+
+            }
+
+          }
+
+        } catch {}
+
+      }
+
+      return result;
+
+    });
+
+    return data;
+
+  } catch (err) {
+
+    console.log("Pornhub extractor failed:", err.message);
+
+    return null;
+
+  }
+
+}
+
+async function extractGenericVideos(page) {
+
+  try {
+
+    const data = await page.evaluate(() => {
+
+      const videos = [
+        ...document.querySelectorAll("video")
+      ];
+
+      const results = [];
+
+      for (const v of videos) {
+
+        if (
+          v.currentSrc &&
+          !v.currentSrc.startsWith("blob:")
+        ) {
+
+          results.push({
+            url: v.currentSrc
+          });
+
+        }
+
+        if (
+          v.src &&
+          !v.src.startsWith("blob:")
+        ) {
+
+          results.push({
+            url: v.src
+          });
+
+        }
+
+        const sources = [
+          ...v.querySelectorAll("source")
+        ];
+
+        for (const s of sources) {
+
+          if (
+            s.src &&
+            !s.src.startsWith("blob:")
+          ) {
+
+            results.push({
+              url: s.src
+            });
+
+          }
+
+        }
+
+      }
+
+      return results;
+
+    });
+
+    return data || [];
+
+  } catch {
+
+    return [];
+
+  }
+
+}
+
 async function processRequest(fileName) {
 
-  const requestPath = path.join(REQUEST_DIR, fileName);
+  const requestPath =
+    path.join(REQUEST_DIR, fileName);
 
-  const raw = fs.readFileSync(requestPath, "utf8");
+  const raw =
+    fs.readFileSync(requestPath, "utf8");
 
   const request = JSON.parse(raw);
 
-  const id = path.parse(fileName).name;
+  const id =
+    path.parse(fileName).name;
 
   console.log(`Processing video request: ${id}`);
 
@@ -66,40 +411,48 @@ async function processRequest(fileName) {
     ]
   });
 
-  const context = await browser.newContext({
-    viewport: {
-      width: 1920,
-      height: 1080
-    },
-    deviceScaleFactor: 1,
-    isMobile: false
-  });
+  const context =
+    await browser.newContext({
+      viewport: {
+        width: 1920,
+        height: 1080
+      },
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    });
 
   const page = await context.newPage();
 
   const mediaRequests = [];
 
-  // =========================
+  // ===================================
   // NETWORK MONITOR
-  // =========================
+  // ===================================
 
   page.on("request", req => {
 
     try {
 
-      const reqUrl = req.url().toLowerCase();
+      const reqUrl =
+        req.url().toLowerCase();
 
-      const type = req.resourceType();
+      const type =
+        req.resourceType();
 
       if (
+
         type === "media" ||
+
         reqUrl.includes(".mp4") ||
         reqUrl.includes(".m3u8") ||
         reqUrl.includes(".mpd") ||
         reqUrl.includes(".ts") ||
+
         reqUrl.includes("videoplayback") ||
+        reqUrl.includes("playlist") ||
         reqUrl.includes("segment") ||
-        reqUrl.includes("playlist")
+        reqUrl.includes("manifest")
+
       ) {
 
         mediaRequests.push({
@@ -115,23 +468,22 @@ async function processRequest(fileName) {
   });
 
   const result = {
+
     id,
+
     createdAt: Date.now(),
 
     pageUrl: null,
+
     title: null,
+
+    siteType: "generic",
 
     videoDetected: false,
 
-    videoUrl: null,
-
-    streamType: null,
-
-    videoDebug: null,
+    videos: [],
 
     mediaRequests: [],
-
-    possibleVideos: [],
 
     error: null
   };
@@ -142,145 +494,160 @@ async function processRequest(fileName) {
       throw new Error("Missing URL");
     }
 
-    // =========================
+    // ===================================
     // OPEN PAGE
-    // =========================
+    // ===================================
 
-    await page.goto(request.url, {
-      waitUntil: "networkidle",
-      timeout: 60000
-    });
+    await safeGoto(page, request.url);
 
-    await sleep(5000);
+    await sleep(6000);
 
     result.pageUrl = page.url();
 
-    result.title = await page.title();
+    try {
+      result.title = await page.title();
+    } catch {}
 
-    // =========================
-    // VIDEO DEBUG
-    // =========================
+    // ===================================
+    // SITE DETECTION
+    // ===================================
 
-    const videoDebug = await page.evaluate(() => {
+    let extracted = null;
 
-      const videos = [
-        ...document.querySelectorAll("video")
-      ];
+    // ===================================
+    // YOUTUBE
+    // ===================================
 
-      return videos.map(v => ({
-        currentSrc: v.currentSrc || null,
+    if (isYoutube(result.pageUrl)) {
 
-        src: v.src || null,
+      result.siteType = "youtube";
 
-        poster: v.poster || null,
+      console.log("Using YouTube extractor");
 
-        readyState: v.readyState,
+      extracted =
+        await extractYoutube(page);
 
-        networkState: v.networkState,
+    }
 
-        paused: v.paused,
+    // ===================================
+    // PORNHUB
+    // ===================================
 
-        muted: v.muted,
+    else if (isPornhub(result.pageUrl)) {
 
-        autoplay: v.autoplay,
+      result.siteType = "pornhub";
 
-        controls: v.controls,
+      console.log("Using Pornhub extractor");
 
-        sources: [
-          ...v.querySelectorAll("source")
-        ].map(s => s.src)
-      }));
+      extracted =
+        await extractPornhub(page);
 
-    });
+    }
 
-    result.videoDebug = videoDebug;
+    // ===================================
+    // EXTRACTED FORMATS
+    // ===================================
 
-    result.mediaRequests = mediaRequests;
+    if (
+      extracted &&
+      extracted.formats &&
+      extracted.formats.length
+    ) {
 
-    // =========================
-    // COLLECT POSSIBLE VIDEOS
-    // =========================
+      for (const item of extracted.formats) {
 
-    const possibleVideos = [];
-
-    for (const video of videoDebug) {
-
-      if (
-        video.currentSrc &&
-        !video.currentSrc.startsWith("blob:")
-      ) {
-
-        possibleVideos.push(video.currentSrc);
-
-      }
-
-      if (
-        video.src &&
-        !video.src.startsWith("blob:")
-      ) {
-
-        possibleVideos.push(video.src);
-
-      }
-
-      if (video.sources?.length) {
-
-        for (const s of video.sources) {
-
-          if (
-            s &&
-            !s.startsWith("blob:")
-          ) {
-
-            possibleVideos.push(s);
-
-          }
-
+        if (!item.url) {
+          continue;
         }
+
+        result.videos.push({
+
+          url: item.url,
+
+          quality:
+            item.quality || null,
+
+          mimeType:
+            item.mimeType || null,
+
+          bitrate:
+            item.bitrate || null,
+
+          hasAudio:
+            item.hasAudio || false,
+
+          hasVideo:
+            item.hasVideo || false,
+
+          streamType:
+            detectStreamType(item.url)
+
+        });
 
       }
 
     }
+
+    // ===================================
+    // GENERIC VIDEO DETECTION
+    // ===================================
+
+    const genericVideos =
+      await extractGenericVideos(page);
+
+    for (const item of genericVideos) {
+
+      result.videos.push({
+
+        url: item.url,
+
+        quality: null,
+
+        mimeType: null,
+
+        bitrate: null,
+
+        streamType:
+          detectStreamType(item.url)
+
+      });
+
+    }
+
+    // ===================================
+    // NETWORK FALLBACK
+    // ===================================
 
     for (const req of mediaRequests) {
 
-      if (req.url) {
-        possibleVideos.push(req.url);
-      }
+      result.videos.push({
+
+        url: req.url,
+
+        quality: null,
+
+        mimeType: null,
+
+        bitrate: null,
+
+        streamType:
+          detectStreamType(req.url)
+
+      });
 
     }
 
-    // remove duplicates
-    const uniqueVideos = [...new Set(possibleVideos)];
+    // ===================================
+    // CLEANUP
+    // ===================================
 
-    result.possibleVideos = uniqueVideos;
+    result.mediaRequests = mediaRequests;
 
-    // =========================
-    // PICK BEST VIDEO
-    // =========================
+    result.videos =
+      uniqueVideos(result.videos);
 
-    let bestVideo = null;
-
-    bestVideo =
-      uniqueVideos.find(v => v.includes(".m3u8")) ||
-
-      uniqueVideos.find(v => v.includes(".mpd")) ||
-
-      uniqueVideos.find(v => v.includes(".mp4")) ||
-
-      uniqueVideos[0] ||
-
-      null;
-
-    if (bestVideo) {
-
-      result.videoDetected = true;
-
-      result.videoUrl = bestVideo;
-
-      result.streamType = detectStreamType(bestVideo);
-
-    }
+    result.videoDetected =
+      result.videos.length > 0;
 
   } catch (err) {
 
@@ -290,12 +657,15 @@ async function processRequest(fileName) {
 
   await browser.close();
 
-  // =========================
+  // ===================================
   // SAVE RESULT
-  // =========================
+  // ===================================
 
   fs.writeFileSync(
-    path.join(RESULT_DIR, `${id}.video.json`),
+    path.join(
+      RESULT_DIR,
+      `${id}.video.json`
+    ),
     JSON.stringify(result, null, 2)
   );
 
@@ -308,7 +678,9 @@ async function main() {
 
   if (!fileName) {
 
-    console.error("No request file provided");
+    console.error(
+      "No request file provided"
+    );
 
     process.exit(1);
   }
@@ -319,10 +691,14 @@ async function main() {
 
   } catch (err) {
 
-    console.error("Video worker failed:", err.message);
+    console.error(
+      "Video worker failed:",
+      err.message
+    );
 
     process.exit(1);
   }
+
 }
 
 main();
