@@ -26,10 +26,6 @@ function sanitize(name) {
 
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function buildDownloadUrl(fileName) {
 
   return `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/result/${fileName}`;
@@ -115,11 +111,16 @@ async function processRequest(fileName) {
   try {
 
     if (!request.url) {
+
       throw new Error("Missing URL");
+
     }
 
     const tempDir =
-      path.join(RESULT_DIR, `tmp_${id}`);
+      path.join(
+        RESULT_DIR,
+        `tmp_${id}`
+      );
 
     fs.mkdirSync(tempDir, {
       recursive: true
@@ -131,14 +132,18 @@ async function processRequest(fileName) {
         `${id}.%(ext)s`
       );
 
-    // دانلود کیفیت نزدیک 240
+    // دانلود اجباری کیفیت پایین
     const cmd = `
 yt-dlp \
--f "bestvideo[height<=240]+bestaudio/best[height<=240]/best" \
+-f "best[height<=240][ext=mp4]/worst[height<=240]/worst" \
 --merge-output-format mp4 \
+--no-playlist \
 -o "${outputTemplate}" \
 "${request.url}"
 `;
+
+    console.log("Running yt-dlp...");
+    console.log(cmd);
 
     execSync(cmd, {
       stdio: "inherit"
@@ -148,7 +153,9 @@ yt-dlp \
       fs.readdirSync(tempDir);
 
     if (!files.length) {
-      throw new Error("download failed");
+
+      throw new Error("Download failed");
+
     }
 
     const downloadedFile =
@@ -192,6 +199,8 @@ yt-dlp \
 
   } catch (err) {
 
+    console.error(err);
+
     result.error = err.message;
 
   }
@@ -204,12 +213,16 @@ yt-dlp \
     JSON.stringify(result, null, 2)
   );
 
-  console.log(`Finished video request: ${id}`);
+  console.log(
+    `Finished video request: ${id}`
+  );
+
 }
 
 async function main() {
 
-  const fileName = process.argv[2];
+  const fileName =
+    process.argv[2];
 
   if (!fileName) {
 
