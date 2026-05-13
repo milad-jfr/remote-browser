@@ -1,304 +1,416 @@
-import fs from "fs";
-import path from "path";
-import { chromium } from "playwright";
+import puppeteer from "puppeteer";
+import fs from "fs/promises";
 
-const REQUEST_DIR = "./request";
-const RESULT_DIR = "./result";
 const SESSION_DIR = "./sessions";
 
-if (!fs.existsSync(REQUEST_DIR)) {
-  fs.mkdirSync(REQUEST_DIR, { recursive: true });
-}
+await fs.mkdir(SESSION_DIR, { recursive: true });
 
-if (!fs.existsSync(RESULT_DIR)) {
-  fs.mkdirSync(RESULT_DIR, { recursive: true });
-}
+async function ensurePage(browser) {
 
-if (!fs.existsSync(SESSION_DIR)) {
-  fs.mkdirSync(SESSION_DIR, { recursive: true });
-}
+  const pages = await browser.pages();
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function cleanupResults(maxResults = 5) {
-  const resultJsonFiles = fs.readdirSync(RESULT_DIR)
-    .filter(file => file.endsWith(".json"))
-    .sort();
-
-  if (resultJsonFiles.length <= maxResults) {
-    return;
+  if (pages.length > 0) {
+    return pages[0];
   }
 
-  const filesToDelete = resultJsonFiles.slice(
-    0,
-    resultJsonFiles.length - maxResults
-  );
-
-  for (const file of filesToDelete) {
-    const id = path.parse(file).name;
-
-    const jsonPath = path.join(RESULT_DIR, `${id}.json`);
-    const imagePath = path.join(RESULT_DIR, `${id}.jpg`);
-
-    if (fs.existsSync(jsonPath)) {
-      fs.unlinkSync(jsonPath);
-    }
-
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
-
-    console.log(`Deleted old result: ${id}`);
-  }
+  return await browser.newPage();
 }
 
-async function waitForPageReady(page, timeout = 20000) {
-  const start = Date.now();
+export default {
 
-  try {
-    await page.waitForLoadState("domcontentloaded", { timeout });
-  } catch (_) {}
+  async fetch(request, env) {
 
-  while (Date.now() - start < timeout) {
     try {
-      const bodyExists = await page.locator("body").count();
-      if (bodyExists > 0) {
-        return true;
-      }
-    } catch (_) {}
 
-    await sleep(300);
-  }
+      const url = new URL(request.url);
 
-  return false;
-}
+      //
+      // HEALTH
+      //
 
-async function autoScroll(page) {
-  try {
-    await page.evaluate(async () => {
-      if (!document.body) return;
+      if (url.pathname === "/health") {
 
-      await new Promise((resolve) => {
-        let totalHeight = 0;
-        const distance = 1000;
-
-        const timer = setInterval(() => {
-          try {
-            const scrollHeight = document.body ? document.body.scrollHeight : 0;
-
-            window.scrollBy(0, distance);
-            totalHeight += distance;
-
-            if (totalHeight >= scrollHeight) {
-              clearInterval(timer);
-              window.scrollTo(0, 0);
-              resolve();
+        return new Response(
+          JSON.stringify({
+            ok: true
+          }),
+          {
+            headers: {
+              "content-type":
+                "application/json"
             }
-          } catch (e) {
-            clearInterval(timer);
-            resolve();
           }
-        }, 250);
-      });
-    });
-  } catch (err) {
-    console.log("autoScroll skipped:", err.message);
-  }
-}
+        );
 
-async function processRequest(fileName) {
-  const requestPath = path.join(REQUEST_DIR, fileName);
-  const raw = fs.readFileSync(requestPath, "utf8");
-  const request = JSON.parse(raw);
-
-  const id = path.parse(fileName).name;
-  const sessionId = request.sessionId || "default";
-  const sessionPath = path.join(SESSION_DIR, sessionId);
-  const statePath = path.join(sessionPath, "state.json");
-
-  if (!fs.existsSync(sessionPath)) {
-    fs.mkdirSync(sessionPath, { recursive: true });
-  }
-
-  console.log(`Processing browser request: ${id}`);
-
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
-  });
-
-  let context;
-
-  if (fs.existsSync(statePath)) {
-    context = await browser.newContext({
-      storageState: statePath,
-      viewport: { width: 1920, height: 1080 },
-      deviceScaleFactor: 1,
-      isMobile: false
-    });
-  } else {
-    context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
-      deviceScaleFactor: 1,
-      isMobile: false
-    });
-  }
-
-  const page = await context.newPage();
-
-  const result = {
-    id,
-    sessionId,
-    status: "success",
-    title: "",
-    url: "",
-    screenshot: `${id}.jpg`,
-    error: null,
-    createdAt: Date.now()
-  };
-
-  try {
-    const action = request.action || "open";
-    const targetUrl = request.url;
-
-    if (action === "open") {
-      if (!targetUrl) {
-        throw new Error("Missing request.url for open action");
       }
 
-      await page.goto(targetUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: 60000
-      });
-    }
+      //
+      // MAIN
+      //
 
-    if (action === "click") {
-      if (request.url) {
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
+      const data =
+        await request.json();
+
+      const {
+        sessionId,
+        action
+      } = data;
+
+      if (!sessionId) {
+
+        return Response.json({
+          error: "missing sessionId"
+        }, {
+          status: 400
         });
+
       }
 
-      await sleep(1500);
+      const userDataDir =
+        `${SESSION_DIR}/${sessionId}`;
 
-      if (typeof request.x !== "number" || typeof request.y !== "number") {
-        throw new Error("Missing click coordinates");
+      //
+      // BROWSER
+      //
+
+      const browser =
+        await puppeteer.launch({
+          headless: true,
+          userDataDir,
+          defaultViewport: {
+            width: 1920,
+            height: 1080
+          },
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled"
+          ]
+        });
+
+      const page =
+        await ensurePage(browser);
+
+      //
+      // ACTIONS
+      //
+
+      switch (action) {
+
+        //
+        // OPEN URL
+        //
+
+        case "open":
+
+          if (!data.url) {
+            throw new Error("missing url");
+          }
+
+          await page.goto(
+            data.url,
+            {
+              waitUntil: "networkidle2",
+              timeout: 60000
+            }
+          );
+
+          break;
+
+        //
+        // LEFT CLICK
+        //
+
+        case "click":
+
+          await page.mouse.click(
+            data.x,
+            data.y
+          );
+
+          await page.waitForTimeout(1000);
+
+          break;
+
+        //
+        // RIGHT CLICK
+        //
+
+        case "rightclick":
+
+          await page.mouse.click(
+            data.x,
+            data.y,
+            {
+              button: "right"
+            }
+          );
+
+          await page.waitForTimeout(500);
+
+          break;
+
+        //
+        // MOUSE DOWN
+        //
+
+        case "mousedown":
+
+          await page.mouse.move(
+            data.x,
+            data.y
+          );
+
+          await page.mouse.down();
+
+          break;
+
+        //
+        // MOUSE MOVE
+        //
+
+        case "mousemove":
+
+          await page.mouse.move(
+            data.x,
+            data.y
+          );
+
+          break;
+
+        //
+        // MOUSE UP
+        //
+
+        case "mouseup":
+
+          await page.mouse.move(
+            data.x,
+            data.y
+          );
+
+          await page.mouse.up();
+
+          await page.waitForTimeout(500);
+
+          break;
+
+        //
+        // SCROLL
+        //
+
+        case "scroll":
+
+          await page.mouse.wheel({
+            deltaY:
+              data.deltaY || 0
+          });
+
+          await page.waitForTimeout(500);
+
+          break;
+
+        //
+        // TYPE TEXT
+        //
+
+        case "type":
+
+          if (!data.text) {
+            throw new Error("missing text");
+          }
+
+          await page.keyboard.type(
+            data.text,
+            {
+              delay: 20
+            }
+          );
+
+          break;
+
+        //
+        // SINGLE KEY
+        //
+
+        case "keypress":
+
+          if (!data.key) {
+            throw new Error("missing key");
+          }
+
+          await page.keyboard.press(
+            data.key
+          );
+
+          break;
+
+        //
+        // HOTKEYS
+        //
+
+        case "hotkey":
+
+          if (
+            !Array.isArray(data.keys)
+          ) {
+            throw new Error(
+              "missing keys"
+            );
+          }
+
+          for (
+            const key of data.keys
+          ) {
+
+            await page.keyboard.down(
+              key
+            );
+
+          }
+
+          for (
+            const key of [...data.keys].reverse()
+          ) {
+
+            await page.keyboard.up(
+              key
+            );
+
+          }
+
+          break;
+
+        //
+        // PASTE
+        //
+
+        case "paste":
+
+          if (!data.text) {
+            throw new Error(
+              "missing paste text"
+            );
+          }
+
+          await page.evaluate(
+            async (text) => {
+
+              await navigator.clipboard.writeText(
+                text
+              );
+
+            },
+            data.text
+          );
+
+          await page.keyboard.down(
+            "Control"
+          );
+
+          await page.keyboard.press(
+            "V"
+          );
+
+          await page.keyboard.up(
+            "Control"
+          );
+
+          break;
+
+        //
+        // SCREENSHOT
+        //
+
+        case "screenshot":
+
+          break;
+
+        //
+        // UNKNOWN
+        //
+
+        default:
+
+          throw new Error(
+            `unknown action: ${action}`
+          );
+
       }
 
-      await page.mouse.click(request.x, request.y);
-      await sleep(2000);
+      //
+      // WAIT RENDER
+      //
+
+      await page.waitForTimeout(500);
+
+      //
+      // SCREENSHOT
+      //
+
+      const screenshot =
+        await page.screenshot({
+          type: "jpeg",
+          quality: 70,
+          fullPage: false
+        });
+
+      //
+      // RESULT
+      //
+
+      const result = {
+        ok: true,
+        action,
+        title: await page.title(),
+        url: page.url(),
+        timestamp: Date.now(),
+        screenshot:
+          Buffer.from(
+            screenshot
+          ).toString("base64")
+      };
+
+      //
+      // CLOSE
+      //
+
+      await browser.close();
+
+      //
+      // RESPONSE
+      //
+
+      return new Response(
+        JSON.stringify(result),
+        {
+          headers: {
+            "content-type":
+              "application/json"
+          }
+        }
+      );
+
+    } catch (err) {
+
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: err.message,
+          stack: err.stack
+        }),
+        {
+          status: 500,
+          headers: {
+            "content-type":
+              "application/json"
+          }
+        }
+      );
+
     }
 
-    if (action === "type") {
-      if (!request.text) {
-        throw new Error("Missing text for type action");
-      }
-
-      await page.keyboard.type(request.text, { delay: 40 });
-      await sleep(1000);
-    }
-
-    if (action === "keypress") {
-      if (!request.key) {
-        throw new Error("Missing key for keypress action");
-      }
-
-      await page.keyboard.press(request.key);
-      await sleep(1000);
-    }
-
-    if (action === "hotkey") {
-      if (!Array.isArray(request.keys)) {
-        throw new Error("hotkey requires keys array");
-      }
-
-      for (const key of request.keys) {
-        await page.keyboard.down(key);
-      }
-
-      for (const key of request.keys.reverse()) {
-        await page.keyboard.up(key);
-      }
-
-      await sleep(1000);
-    }
-
-    const ready = await waitForPageReady(page, 15000);
-    if (!ready) {
-      console.log("Body not fully ready, continuing with fallback...");
-    }
-
-    await sleep(2000);
-
-    try {
-      await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
-    } catch (_) {}
-
-    await autoScroll(page);
-    await sleep(1500);
-
-    try {
-      result.title = await page.title();
-    } catch (_) {
-      result.title = "";
-    }
-
-    try {
-      result.url = page.url();
-    } catch (_) {
-      result.url = targetUrl || "";
-    }
-
-    await page.screenshot({
-      path: path.join(RESULT_DIR, `${id}.jpg`),
-      type: "jpeg",
-      quality: 60,
-      fullPage: false
-    });
-
-    await context.storageState({
-      path: statePath
-    });
-
-  } catch (err) {
-    result.status = "error";
-    result.error = err.message;
   }
 
-  await browser.close();
-
-  fs.writeFileSync(
-    path.join(RESULT_DIR, `${id}.json`),
-    JSON.stringify(result, null, 2)
-  );
-
-  cleanupResults(5);
-
-  console.log(`Finished browser request: ${id}`);
-}
-
-async function main() {
-  const fileName = process.argv[2];
-
-  if (!fileName) {
-    console.error("No request file provided");
-    process.exit(1);
-  }
-
-  try {
-    await processRequest(fileName);
-  } catch (err) {
-    console.error("Browser worker failed:", err.message);
-    process.exit(1);
-  }
-}
-
-main();
+};
