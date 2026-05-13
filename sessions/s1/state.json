@@ -523,9 +523,72 @@
       "httpOnly": false,
       "secure": true,
       "sameSite": "None"
+    },
+    {
+      "name": "session_token",
+      "value": "0fd113e75934771boirGVcq4JNaTPU4ciYHzfBJsT084786SCnA3xXs9y7pcwNETItKnT9M_vTqGGzeptmTv7uVU9FdJpUfX6Ic9YKYUMBdqFlwZx7cOc8klKWMUU_p9oN0-Q2qVK_BxvFmtV4stVq5q8r7j4MdNTDTX15eyZHjLUf-0PXPfS9cOnFXiaE_X4I4FFh7uyDMMdTvOl-yHO3HOZ6s12FNilvN52w%3D%3D",
+      "domain": ".xvideos.com",
+      "path": "/",
+      "expires": 1794215966.264921,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__uvt",
+      "value": "s%3A34%3A%227-08c03c25f9113dc81b0d3c1f3a533098%22%3B",
+      "domain": ".pemsrv.com",
+      "path": "/",
+      "expires": 1813223966.266704,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "session_ath",
+      "value": "light",
+      "domain": ".xvideos.com",
+      "path": "/",
+      "expires": 1786439966,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__suvt",
+      "value": "7-7e71fb9d39af1d0d5578d8b90750610d",
+      "domain": "www.xvideos.com",
+      "path": "/",
+      "expires": 1813223968.521784,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__nuvt",
+      "value": "7-08c03c25f9113dc81b0d3c1f3a533098",
+      "domain": "www.xvideos.com",
+      "path": "/",
+      "expires": 1813223968.521915,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
     }
   ],
   "origins": [
+    {
+      "origin": "https://www.xvideos.com",
+      "localStorage": [
+        {
+          "name": "thumbloadstats_vthumbs",
+          "value": "{\"21\":[{\"s\":2,\"d\":244}],\"23\":[{\"s\":2,\"d\":267}],\"last\":{\"s\":2,\"v\":[244,267]},\"t\":1779268766055}"
+        },
+        {
+          "name": "user_theme_fav",
+          "value": "{\"i\":\"light\",\"m\":\"auto\",\"t\":1786439966267}"
+        }
+      ]
+    },
     {
       "origin": "https://www.pornhub.com",
       "localStorage": [
