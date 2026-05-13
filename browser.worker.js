@@ -57,12 +57,10 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
-  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
-  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
@@ -80,16 +78,16 @@ async function waitForPageReady(page, timeout = 20000) {
 async function autoScroll(page) {
   try {
     await page.evaluate(async () => {
-      if (!document.body) {
-        return;
-      }
+      if (!document.body) return;
 
       await new Promise((resolve) => {
         let totalHeight = 0;
         const distance = 1000;
+
         const timer = setInterval(() => {
           try {
             const scrollHeight = document.body ? document.body.scrollHeight : 0;
+
             window.scrollBy(0, distance);
             totalHeight += distance;
 
@@ -141,19 +139,13 @@ async function processRequest(fileName) {
   if (fs.existsSync(statePath)) {
     context = await browser.newContext({
       storageState: statePath,
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
+      viewport: { width: 1920, height: 1080 },
       deviceScaleFactor: 1,
       isMobile: false
     });
   } else {
     context = await browser.newContext({
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
+      viewport: { width: 1920, height: 1080 },
       deviceScaleFactor: 1,
       isMobile: false
     });
@@ -202,7 +194,41 @@ async function processRequest(fileName) {
       }
 
       await page.mouse.click(request.x, request.y);
-      await sleep(2500);
+      await sleep(2000);
+    }
+
+    if (action === "type") {
+      if (!request.text) {
+        throw new Error("Missing text for type action");
+      }
+
+      await page.keyboard.type(request.text, { delay: 40 });
+      await sleep(1000);
+    }
+
+    if (action === "keypress") {
+      if (!request.key) {
+        throw new Error("Missing key for keypress action");
+      }
+
+      await page.keyboard.press(request.key);
+      await sleep(1000);
+    }
+
+    if (action === "hotkey") {
+      if (!Array.isArray(request.keys)) {
+        throw new Error("hotkey requires keys array");
+      }
+
+      for (const key of request.keys) {
+        await page.keyboard.down(key);
+      }
+
+      for (const key of request.keys.reverse()) {
+        await page.keyboard.up(key);
+      }
+
+      await sleep(1000);
     }
 
     const ready = await waitForPageReady(page, 15000);
@@ -212,7 +238,6 @@ async function processRequest(fileName) {
 
     await sleep(2000);
 
-    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
       await page.locator("body").first().waitFor({ timeout: 5000, state: "attached" });
     } catch (_) {}
