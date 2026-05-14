@@ -26,30 +26,60 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Linux packages
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y \
+            xvfb \
+            x11-utils \
+            xclip \
+            xsel \
+            fluxbox \
+            wmctrl \
+            libgtk-3-0 \
+            libgbm1 \
+            libnotify-dev \
+            libnss3 \
+            libxss1 \
+            libasound2t64 \
+            libxtst6 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxdamage1 \
+            libxrandr2 \
+            libu2f-udev \
+            libvulkan1
+
       - name: Install dependencies
         run: npm install
 
-      - name: Install ffmpeg
-        run: |
-          sudo apt update
-          sudo apt install -y ffmpeg
-
-      - name: Install yt-dlp
-        run: |
-          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
-            -o /usr/local/bin/yt-dlp
-
-          sudo chmod a+rx /usr/local/bin/yt-dlp
-
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Configure git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
+      - name: Start virtual display
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Start lightweight desktop
+        run: |
+          export DISPLAY=:99
+          fluxbox > /dev/null 2>&1 &
+
+      - name: Verify display
+        run: |
+          export DISPLAY=:99
+          xdpyinfo | head
+
       - name: Persistent supervisor
+        env:
+          DISPLAY: :99
         run: |
           while true
           do
