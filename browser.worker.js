@@ -58,12 +58,16 @@ async function waitForPageReady(page, timeout = 15000) {
   const start = Date.now();
 
   try {
-    await page.waitForLoadState("domcontentloaded", { timeout });
+    await page.waitForLoadState("domcontentloaded", {
+      timeout
+    });
   } catch (_) {}
 
   while (Date.now() - start < timeout) {
     try {
-      const bodyExists = await page.locator("body").count();
+      const bodyExists = await page
+        .locator("body")
+        .count();
 
       if (bodyExists > 0) {
         return true;
@@ -78,9 +82,12 @@ async function waitForPageReady(page, timeout = 15000) {
 
 async function waitAfterAction(page) {
   try {
-    await page.waitForLoadState("networkidle", {
-      timeout: 3000
-    });
+    await page.waitForLoadState(
+      "networkidle",
+      {
+        timeout: 3000
+      }
+    );
   } catch (_) {}
 
   await sleep(1000);
@@ -95,6 +102,7 @@ async function autoScroll(page) {
 
       await new Promise((resolve) => {
         let totalHeight = 0;
+
         const distance = 1000;
 
         const timer = setInterval(() => {
@@ -122,30 +130,30 @@ async function autoScroll(page) {
       });
     });
   } catch (err) {
-    console.log("autoScroll skipped:", err.message);
+    console.log(
+      "autoScroll skipped:",
+      err.message
+    );
   }
 }
 
-async function processRequest(fileName) {
-  const requestPath = path.join(REQUEST_DIR, fileName);
+// --------------------
+// SESSION CACHE
+// --------------------
 
-  const raw = fs.readFileSync(requestPath, "utf8");
+const sessions = new Map();
 
-  const request = JSON.parse(raw);
+async function getSession(sessionId, statePath) {
+  const existing = sessions.get(sessionId);
 
-  const id = path.parse(fileName).name;
-
-  const sessionId = request.sessionId || "default";
-
-  const sessionPath = path.join(SESSION_DIR, sessionId);
-
-  const statePath = path.join(sessionPath, "state.json");
-
-  if (!fs.existsSync(sessionPath)) {
-    fs.mkdirSync(sessionPath, { recursive: true });
+  // اگر session هنوز زنده است
+  if (existing) {
+    try {
+      if (!existing.page.isClosed()) {
+        return existing;
+      }
+    } catch (_) {}
   }
-
-  console.log(`Processing browser request: ${id}`);
 
   const browser = await chromium.launch({
     headless: true,
@@ -180,7 +188,73 @@ async function processRequest(fileName) {
     });
   }
 
-  let page = await context.newPage();
+  const page = await context.newPage();
+
+  const session = {
+    browser,
+    context,
+    page,
+    lastUsedAt: Date.now()
+  };
+
+  sessions.set(sessionId, session);
+
+  return session;
+}
+
+async function processRequest(fileName) {
+  const requestPath = path.join(
+    REQUEST_DIR,
+    fileName
+  );
+
+  const raw = fs.readFileSync(
+    requestPath,
+    "utf8"
+  );
+
+  const request = JSON.parse(raw);
+
+  const id = path.parse(fileName).name;
+
+  const sessionId =
+    request.sessionId || "default";
+
+  const sessionPath = path.join(
+    SESSION_DIR,
+    sessionId
+  );
+
+  const statePath = path.join(
+    sessionPath,
+    "state.json"
+  );
+
+  if (!fs.existsSync(sessionPath)) {
+    fs.mkdirSync(sessionPath, {
+      recursive: true
+    });
+  }
+
+  console.log(
+    `Processing browser request: ${id}`
+  );
+
+  // --------------------
+  // REUSE SESSION
+  // --------------------
+
+  const session = await getSession(
+    sessionId,
+    statePath
+  );
+
+  const browser = session.browser;
+  const context = session.context;
+
+  let page = session.page;
+
+  session.lastUsedAt = Date.now();
 
   const result = {
     id,
@@ -194,28 +268,27 @@ async function processRequest(fileName) {
   };
 
   try {
-    const action = request.action || "open";
+    const action =
+      request.action || "open";
 
     const targetUrl = request.url;
 
-    // اگر صفحه هنوز about:blank بود
-    // و url داشتیم صفحه را باز کن
-    if (
-      targetUrl &&
-      page.url() === "about:blank"
-    ) {
-      await page.goto(targetUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: 60000
-      });
+    // فقط اگر page مرده بود
+    if (page.isClosed()) {
+      page = await context.newPage();
 
-      await waitAfterAction(page);
+      session.page = page;
     }
 
-    // open
+    // --------------------
+    // OPEN
+    // --------------------
+
     if (action === "open") {
       if (!targetUrl) {
-        throw new Error("Missing request.url for open action");
+        throw new Error(
+          "Missing request.url for open action"
+        );
       }
 
       await page.goto(targetUrl, {
@@ -226,40 +299,55 @@ async function processRequest(fileName) {
       await waitAfterAction(page);
     }
 
-    // click
+    // --------------------
+    // CLICK
+    // --------------------
+
     if (action === "click") {
       if (
         typeof request.x !== "number" ||
         typeof request.y !== "number"
       ) {
-        throw new Error("Missing click coordinates");
+        throw new Error(
+          "Missing click coordinates"
+        );
       }
 
-      // گوش دادن برای تب جدید
-      const newPagePromise = context
-        .waitForEvent("page")
-        .catch(() => null);
-
-      // navigation معمولی
-      const navigationPromise = page
-        .waitForNavigation({
-          timeout: 3000
+      const popupPromise = context
+        .waitForEvent("page", {
+          timeout: 5000
         })
         .catch(() => null);
 
-      await page.mouse.click(
+      const navigationPromise = page
+        .waitForNavigation({
+          timeout: 5000,
+          waitUntil: "domcontentloaded"
+        })
+        .catch(() => null);
+
+      await page.mouse.move(
         request.x,
         request.y
       );
 
-      // اگر tab جدید باز شد
+      await sleep(100);
+
+      await page.mouse.down();
+
+      await sleep(80);
+
+      await page.mouse.up();
+
       const newPage = await Promise.race([
-        newPagePromise,
+        popupPromise,
         sleep(2000).then(() => null)
       ]);
 
       if (newPage) {
         page = newPage;
+
+        session.page = newPage;
 
         try {
           await page.waitForLoadState(
@@ -271,21 +359,15 @@ async function processRequest(fileName) {
         } catch (_) {}
       } else {
         await navigationPromise;
-
-        try {
-          await page.waitForLoadState(
-            "networkidle",
-            {
-              timeout: 3000
-            }
-          );
-        } catch (_) {}
       }
 
       await waitAfterAction(page);
     }
 
-    // paste_text
+    // --------------------
+    // PASTE TEXT
+    // --------------------
+
     if (action === "paste_text") {
       const text = request.text || "";
 
@@ -307,24 +389,65 @@ async function processRequest(fileName) {
           );
         });
 
-      // fallback ساده
       if (!hasFocusedInput) {
         const input = page.locator(
           'input, textarea, [contenteditable="true"]'
         ).first();
 
         if (await input.count()) {
-          await input.click();
+          await input.focus();
 
           await sleep(300);
         }
       }
 
-      // paste طبیعی
-      await page.keyboard.insertText(text);
+      // پاک کردن مقدار قبلی
+      await page.keyboard
+        .press("Control+A")
+        .catch(() => {});
+
+      await page.keyboard
+        .press("Backspace")
+        .catch(() => {});
+
+      await sleep(100);
+
+      // تایپ واقعی
+      await page.keyboard.type(text, {
+        delay: 80
+      });
+
+      // اطمینان از sync شدن React state
+      await page.evaluate(() => {
+        const el = document.activeElement;
+
+        if (
+          el &&
+          (
+            el.tagName === "INPUT" ||
+            el.tagName === "TEXTAREA"
+          )
+        ) {
+          el.dispatchEvent(
+            new Event("input", {
+              bubbles: true
+            })
+          );
+
+          el.dispatchEvent(
+            new Event("change", {
+              bubbles: true
+            })
+          );
+        }
+      });
 
       await waitAfterAction(page);
     }
+
+    // --------------------
+    // WAIT PAGE
+    // --------------------
 
     const ready = await waitForPageReady(
       page,
@@ -379,10 +502,12 @@ async function processRequest(fileName) {
 
   } catch (err) {
     result.status = "error";
+
     result.error = err.message;
   }
 
-  await browser.close();
+  // browser.close() حذف شد
+  // session باید زنده بماند
 
   fs.writeFileSync(
     path.join(
