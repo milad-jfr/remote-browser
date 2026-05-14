@@ -1,8 +1,42 @@
+// dispatcher.js
+
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
+
+// =========================
+// SLEEP
+// =========================
+
+function sleep(ms) {
+
+  return new Promise(resolve =>
+    setTimeout(resolve, ms)
+  );
+
+}
+
+// =========================
+// GIT PULL
+// =========================
+
+function gitPull() {
+
+  try {
+
+    execSync("git pull origin main", {
+      stdio: "inherit"
+    });
+
+  } catch (err) {
+
+    console.error("git pull failed:", err.message);
+
+  }
+
+}
 
 // =========================
 // PUSH RESULTS
@@ -46,26 +80,36 @@ function gitSync() {
 
 async function processRequest(file) {
 
-  const requestPath = path.join(REQUEST_DIR, file);
+  const requestPath =
+    path.join(REQUEST_DIR, file);
 
   let request;
 
   try {
 
     request = JSON.parse(
-      fs.readFileSync(requestPath, "utf8")
+      fs.readFileSync(
+        requestPath,
+        "utf8"
+      )
     );
 
   } catch (err) {
 
-    console.error("invalid request:", file);
+    console.error(
+      "invalid request:",
+      file
+    );
 
     return;
   }
 
-  const type = request.type || "browser";
+  const type =
+    request.type || "browser";
 
-  console.log(`processing ${file} (${type})`);
+  console.log(
+    `processing ${file} (${type})`
+  );
 
   try {
 
@@ -75,15 +119,21 @@ async function processRequest(file) {
 
     if (type === "video") {
 
-      execSync(`node video.worker.js "${file}"`, {
-        stdio: "inherit"
-      });
+      execSync(
+        `node video.worker.js "${file}"`,
+        {
+          stdio: "inherit"
+        }
+      );
 
     } else {
 
-      execSync(`node browser.worker.js "${file}"`, {
-        stdio: "inherit"
-      });
+      execSync(
+        `node browser.worker.js "${file}"`,
+        {
+          stdio: "inherit"
+        }
+      );
 
     }
 
@@ -107,7 +157,9 @@ async function processRequest(file) {
 
   } catch (err) {
 
-    console.error(`worker failed for ${file}`);
+    console.error(
+      `worker failed for ${file}`
+    );
 
     console.error(err.message);
 
@@ -123,7 +175,8 @@ async function main() {
 
   try {
 
-    const files = fs.readdirSync(REQUEST_DIR)
+    const files = fs
+      .readdirSync(REQUEST_DIR)
       .filter(f => f.endsWith(".json"))
       .sort();
 
@@ -142,12 +195,35 @@ async function main() {
 
   } catch (err) {
 
-    console.error("dispatcher error:", err.message);
-
-    process.exit(1);
+    console.error(
+      "dispatcher error:",
+      err.message
+    );
 
   }
 
 }
 
-main();
+// =========================
+// RUN FOREVER
+// =========================
+
+async function runForever() {
+
+  console.log(
+    "dispatcher started..."
+  );
+
+  while (true) {
+
+    gitPull();
+
+    await main();
+
+    await sleep(2000);
+
+  }
+
+}
+
+runForever();
