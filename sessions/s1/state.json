@@ -756,10 +756,10 @@
     },
     {
       "name": "__Secure-STRP",
-      "value": "AEEP7gIbU2ui5J9jkFnjilfE_Uggy_in2y1OGJOacWDMYpHqGnKhYuExVC9qKd3fsSUmtDfBC2HCQ_7NQchQx1b9KE0MreGaWkvN",
+      "value": "AEEP7gJzqWfnm1iWVz8uKyFzyr9-Y9SQFsjgUlw5X9b4bMFTcnq5hkwgB4Hw7RCY7JQEfgXPudTRyx2uCOnuqJPtQTz1yMlahx0H",
       "domain": ".google.com",
       "path": "/",
-      "expires": 1778761126.976216,
+      "expires": 1778761178.943808,
       "httpOnly": false,
       "secure": true,
       "sameSite": "Strict"
@@ -771,7 +771,7 @@
       "localStorage": [
         {
           "name": "sb_wiz.zpc.gws-wiz.",
-          "value": "{\"0\":[[\"microsoft linkedin layoffs\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"william paul lawler\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"apple iphone ultra\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"christopher nolan the odyssey achilles\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"brayden mcnabb ryan poehling\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"hantavirus outbreak cruise ship\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"chevy silverado tahoe recall\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"canvas hackers ransom\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"disneyland expansion\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"mario kart switch bundle\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}]],\"1\":{\"av\":\"703184800796396875\",\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}}}}"
+          "value": "{\"0\":[[\"golf pga championship 2026\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"fortnite overwatch skins\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"the testaments episodes\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"marty makary fda commissioner\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"cisco layoffs reddit\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"hantavirus outbreak cruise ship\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"android auto updates\",0,[3,143,362],{\"zp\":{\"gs_ss\":\"1\"},\"zl\":8,\"zf\":33}],[\"william paul lawler\",0,[3,143,362],{\"zf\":33,\"zl\":8,\"zp\":{\"gs_ss\":\"1\"}}],[\"knicks og anunoby injury\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}],[\"chevrolet camaro\",0,[3,143,362],{\"zf\":33,\"zp\":{\"gs_ss\":\"1\"},\"zl\":8}]],\"1\":{\"ag\":{\"a\":{\"8\":[\"Trending searches\"]}},\"av\":\"1441307354279729405\"}}"
         }
       ]
     },
