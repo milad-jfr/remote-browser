@@ -180,7 +180,7 @@ async function processRequest(fileName) {
     });
   }
 
-  const page = await context.newPage();
+  let page = await context.newPage();
 
   const result = {
     id,
@@ -198,7 +198,21 @@ async function processRequest(fileName) {
 
     const targetUrl = request.url;
 
-    // فقط برای open
+    // اگر صفحه هنوز about:blank بود
+    // و url داشتیم صفحه را باز کن
+    if (
+      targetUrl &&
+      page.url() === "about:blank"
+    ) {
+      await page.goto(targetUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000
+      });
+
+      await waitAfterAction(page);
+    }
+
+    // open
     if (action === "open") {
       if (!targetUrl) {
         throw new Error("Missing request.url for open action");
@@ -212,49 +226,86 @@ async function processRequest(fileName) {
       await waitAfterAction(page);
     }
 
-    // click واقعی بدون reload مصنوعی
+    // click
     if (action === "click") {
-      if (typeof request.x !== "number" ||
-          typeof request.y !== "number") {
+      if (
+        typeof request.x !== "number" ||
+        typeof request.y !== "number"
+      ) {
         throw new Error("Missing click coordinates");
       }
 
-      await Promise.allSettled([
-        page.waitForNavigation({
-          timeout: 3000
-        }),
+      // گوش دادن برای تب جدید
+      const newPagePromise = context
+        .waitForEvent("page")
+        .catch(() => null);
 
-        page.waitForLoadState("networkidle", {
+      // navigation معمولی
+      const navigationPromise = page
+        .waitForNavigation({
           timeout: 3000
-        }),
+        })
+        .catch(() => null);
 
-        page.mouse.click(request.x, request.y)
+      await page.mouse.click(
+        request.x,
+        request.y
+      );
+
+      // اگر tab جدید باز شد
+      const newPage = await Promise.race([
+        newPagePromise,
+        sleep(2000).then(() => null)
       ]);
+
+      if (newPage) {
+        page = newPage;
+
+        try {
+          await page.waitForLoadState(
+            "domcontentloaded",
+            {
+              timeout: 10000
+            }
+          );
+        } catch (_) {}
+      } else {
+        await navigationPromise;
+
+        try {
+          await page.waitForLoadState(
+            "networkidle",
+            {
+              timeout: 3000
+            }
+          );
+        } catch (_) {}
+      }
 
       await waitAfterAction(page);
     }
 
-    // paste_text ساده و طبیعی
+    // paste_text
     if (action === "paste_text") {
       const text = request.text || "";
 
-      // اگر input فوکوس نداشت
-      // مثل گوگل خودش input فعال را پیدا کن
-      const hasFocusedInput = await page.evaluate(() => {
-        const el = document.activeElement;
+      const hasFocusedInput =
+        await page.evaluate(() => {
+          const el = document.activeElement;
 
-        if (!el) {
-          return false;
-        }
+          if (!el) {
+            return false;
+          }
 
-        const tag = el.tagName.toLowerCase();
+          const tag =
+            el.tagName.toLowerCase();
 
-        return (
-          tag === "input" ||
-          tag === "textarea" ||
-          el.isContentEditable
-        );
-      });
+          return (
+            tag === "input" ||
+            tag === "textarea" ||
+            el.isContentEditable
+          );
+        });
 
       // fallback ساده
       if (!hasFocusedInput) {
@@ -264,20 +315,26 @@ async function processRequest(fileName) {
 
         if (await input.count()) {
           await input.click();
+
           await sleep(300);
         }
       }
 
-      // تایپ طبیعی
+      // paste طبیعی
       await page.keyboard.insertText(text);
 
       await waitAfterAction(page);
     }
 
-    const ready = await waitForPageReady(page, 15000);
+    const ready = await waitForPageReady(
+      page,
+      15000
+    );
 
     if (!ready) {
-      console.log("Body not fully ready, continuing...");
+      console.log(
+        "Body not fully ready, continuing..."
+      );
     }
 
     try {
@@ -307,7 +364,10 @@ async function processRequest(fileName) {
     }
 
     await page.screenshot({
-      path: path.join(RESULT_DIR, `${id}.jpg`),
+      path: path.join(
+        RESULT_DIR,
+        `${id}.jpg`
+      ),
       type: "jpeg",
       quality: 60,
       fullPage: true
@@ -325,27 +385,39 @@ async function processRequest(fileName) {
   await browser.close();
 
   fs.writeFileSync(
-    path.join(RESULT_DIR, `${id}.json`),
+    path.join(
+      RESULT_DIR,
+      `${id}.json`
+    ),
     JSON.stringify(result, null, 2)
   );
 
   cleanupResults(5);
 
-  console.log(`Finished browser request: ${id}`);
+  console.log(
+    `Finished browser request: ${id}`
+  );
 }
 
 async function main() {
   const fileName = process.argv[2];
 
   if (!fileName) {
-    console.error("No request file provided");
+    console.error(
+      "No request file provided"
+    );
+
     process.exit(1);
   }
 
   try {
     await processRequest(fileName);
   } catch (err) {
-    console.error("Browser worker failed:", err.message);
+    console.error(
+      "Browser worker failed:",
+      err.message
+    );
+
     process.exit(1);
   }
 }
