@@ -57,12 +57,10 @@ function cleanupResults(maxResults = 5) {
 async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
-  // 1) منتظر DOM پایه
   try {
     await page.waitForLoadState("domcontentloaded", { timeout });
   } catch (_) {}
 
-  // 2) منتظر body، ولی نرم و با fallback
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
@@ -80,16 +78,16 @@ async function waitForPageReady(page, timeout = 20000) {
 async function autoScroll(page) {
   try {
     await page.evaluate(async () => {
-      if (!document.body) {
-        return;
-      }
+      if (!document.body) return;
 
       await new Promise((resolve) => {
         let totalHeight = 0;
         const distance = 1000;
+
         const timer = setInterval(() => {
           try {
-            const scrollHeight = document.body ? document.body.scrollHeight : 0;
+            const scrollHeight = document.body.scrollHeight;
+
             window.scrollBy(0, distance);
             totalHeight += distance;
 
@@ -141,19 +139,13 @@ async function processRequest(fileName) {
   if (fs.existsSync(statePath)) {
     context = await browser.newContext({
       storageState: statePath,
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
+      viewport: { width: 1920, height: 1080 },
       deviceScaleFactor: 1,
       isMobile: false
     });
   } else {
     context = await browser.newContext({
-      viewport: {
-        width: 1920,
-        height: 1080
-      },
+      viewport: { width: 1920, height: 1080 },
       deviceScaleFactor: 1,
       isMobile: false
     });
@@ -173,6 +165,7 @@ async function processRequest(fileName) {
   };
 
   try {
+
     const action = request.action || "open";
     const targetUrl = request.url;
 
@@ -188,6 +181,7 @@ async function processRequest(fileName) {
     }
 
     if (action === "click") {
+
       if (request.url) {
         await page.goto(request.url, {
           waitUntil: "domcontentloaded",
@@ -197,14 +191,13 @@ async function processRequest(fileName) {
 
       await sleep(1500);
 
-      // اگر selector داده شده باشد، اولویت با selector
       if (request.selector) {
-        await page.waitForSelector(request.selector, {
-          timeout: 10000
-        });
 
+        await page.waitForSelector(request.selector, { timeout: 10000 });
         await page.click(request.selector);
+
       } else {
+
         if (typeof request.x !== "number" || typeof request.y !== "number") {
           throw new Error("Missing click coordinates");
         }
@@ -215,8 +208,8 @@ async function processRequest(fileName) {
       await sleep(2500);
     }
 
-    // ✅ اکشن جدید paste_text
     if (action === "paste_text") {
+
       if (request.url) {
         await page.goto(request.url, {
           waitUntil: "domcontentloaded",
@@ -224,43 +217,45 @@ async function processRequest(fileName) {
         });
       }
 
-      await sleep(1000);
+      await sleep(1200);
 
       if (!request.text) {
         throw new Error("Missing text for paste_text action");
       }
 
-      let filled = false;
+      const selector = request.selector || 'input[name="identifier"]';
 
-      // ✅ مخصوص Google Login
-      try {
-        await page.waitForSelector('input[name="identifier"]', {
-          timeout: 5000
-        });
+      await page.waitForSelector(selector, { timeout: 10000 });
 
-        await page.fill(
-          'input[name="identifier"]',
-          request.text
-        );
+      await page.evaluate(({ selector, value }) => {
 
-        filled = true;
+        const input = document.querySelector(selector);
 
-        await sleep(800);
-      } catch (_) {}
-
-      // ✅ fallback عمومی
-      if (!filled) {
-        if (
-          typeof request.x === "number" &&
-          typeof request.y === "number"
-        ) {
-          await page.mouse.click(request.x, request.y);
-          await sleep(300);
+        if (!input) {
+          throw new Error("Input not found");
         }
 
-        await page.keyboard.insertText(request.text);
-        await sleep(800);
-      }
+        if (document.activeElement !== input) {
+          input.focus();
+        }
+
+        const setter =
+          Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype,
+            "value"
+          ).set;
+
+        setter.call(input, value);
+
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+
+      }, {
+        selector,
+        value: request.text
+      });
+
+      await sleep(1200);
     }
 
     const ready = await waitForPageReady(page, 15000);
@@ -271,14 +266,11 @@ async function processRequest(fileName) {
 
     await sleep(2000);
 
-    // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page.locator("body")
-        .first()
-        .waitFor({
-          timeout: 5000,
-          state: "attached"
-        });
+      await page.locator("body").first().waitFor({
+        timeout: 5000,
+        state: "attached"
+      });
     } catch (_) {}
 
     await autoScroll(page);
@@ -325,6 +317,7 @@ async function processRequest(fileName) {
 }
 
 async function main() {
+
   const fileName = process.argv[2];
 
   if (!fileName) {
