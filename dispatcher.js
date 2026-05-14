@@ -1,26 +1,15 @@
-// dispatcher.js
-
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
 
-// =========================
-// SLEEP
-// =========================
-
 function sleep(ms) {
 
   return new Promise(resolve =>
     setTimeout(resolve, ms)
   );
-
 }
-
-// =========================
-// GIT PULL
-// =========================
 
 function gitPull() {
 
@@ -32,15 +21,12 @@ function gitPull() {
 
   } catch (err) {
 
-    console.error("git pull failed:", err.message);
-
+    console.error(
+      "git pull failed:",
+      err.message
+    );
   }
-
 }
-
-// =========================
-// PUSH RESULTS
-// =========================
 
 function gitSync() {
 
@@ -52,14 +38,18 @@ function gitSync() {
 
     try {
 
-      execSync(`git commit -m "update results"`, {
-        stdio: "inherit"
-      });
+      execSync(
+        `git commit -m "update results"`,
+        {
+          stdio: "inherit"
+        }
+      );
 
     } catch {
 
-      console.log("nothing to commit");
-
+      console.log(
+        "nothing to commit"
+      );
     }
 
     execSync("git push origin main", {
@@ -68,15 +58,12 @@ function gitSync() {
 
   } catch (err) {
 
-    console.error("git sync failed:", err.message);
-
+    console.error(
+      "git sync failed:",
+      err.message
+    );
   }
-
 }
-
-// =========================
-// PROCESS REQUEST
-// =========================
 
 async function processRequest(file) {
 
@@ -113,10 +100,6 @@ async function processRequest(file) {
 
   try {
 
-    // =========================
-    // RUN WORKER
-    // =========================
-
     if (type === "video") {
 
       execSync(
@@ -134,22 +117,12 @@ async function processRequest(file) {
           stdio: "inherit"
         }
       );
-
     }
-
-    // =========================
-    // REMOVE REQUEST
-    // =========================
 
     if (fs.existsSync(requestPath)) {
 
       fs.unlinkSync(requestPath);
-
     }
-
-    // =========================
-    // PUSH RESULTS
-    // =========================
 
     gitSync();
 
@@ -162,14 +135,8 @@ async function processRequest(file) {
     );
 
     console.error(err.message);
-
   }
-
 }
-
-// =========================
-// MAIN
-// =========================
 
 async function main() {
 
@@ -190,7 +157,6 @@ async function main() {
     for (const file of files) {
 
       await processRequest(file);
-
     }
 
   } catch (err) {
@@ -199,14 +165,8 @@ async function main() {
       "dispatcher error:",
       err.message
     );
-
   }
-
 }
-
-// =========================
-// RUN FOREVER
-// =========================
 
 async function runForever() {
 
@@ -221,9 +181,7 @@ async function runForever() {
     await main();
 
     await sleep(2000);
-
   }
-
 }
 
 runForever();
