@@ -4,29 +4,9 @@ import { execSync } from "child_process";
 
 const REQUEST_DIR = "./request";
 
-function sleep(ms) {
-
-  return new Promise(resolve =>
-    setTimeout(resolve, ms)
-  );
-}
-
-function gitPull() {
-
-  try {
-
-    execSync("git pull origin main", {
-      stdio: "inherit"
-    });
-
-  } catch (err) {
-
-    console.error(
-      "git pull failed:",
-      err.message
-    );
-  }
-}
+// =========================
+// PUSH RESULTS
+// =========================
 
 function gitSync() {
 
@@ -38,18 +18,14 @@ function gitSync() {
 
     try {
 
-      execSync(
-        `git commit -m "update results"`,
-        {
-          stdio: "inherit"
-        }
-      );
+      execSync(`git commit -m "update results"`, {
+        stdio: "inherit"
+      });
 
     } catch {
 
-      console.log(
-        "nothing to commit"
-      );
+      console.log("nothing to commit");
+
     }
 
     execSync("git push origin main", {
@@ -58,71 +34,72 @@ function gitSync() {
 
   } catch (err) {
 
-    console.error(
-      "git sync failed:",
-      err.message
-    );
+    console.error("git sync failed:", err.message);
+
   }
+
 }
+
+// =========================
+// PROCESS REQUEST
+// =========================
 
 async function processRequest(file) {
 
-  const requestPath =
-    path.join(REQUEST_DIR, file);
+  const requestPath = path.join(REQUEST_DIR, file);
 
   let request;
 
   try {
 
     request = JSON.parse(
-      fs.readFileSync(
-        requestPath,
-        "utf8"
-      )
+      fs.readFileSync(requestPath, "utf8")
     );
 
   } catch (err) {
 
-    console.error(
-      "invalid request:",
-      file
-    );
+    console.error("invalid request:", file);
 
     return;
   }
 
-  const type =
-    request.type || "browser";
+  const type = request.type || "browser";
 
-  console.log(
-    `processing ${file} (${type})`
-  );
+  console.log(`processing ${file} (${type})`);
 
   try {
 
+    // =========================
+    // RUN WORKER
+    // =========================
+
     if (type === "video") {
 
-      execSync(
-        `node video.worker.js "${file}"`,
-        {
-          stdio: "inherit"
-        }
-      );
+      execSync(`node video.worker.js "${file}"`, {
+        stdio: "inherit"
+      });
 
     } else {
 
-      execSync(
-        `node browser.worker.js "${file}"`,
-        {
-          stdio: "inherit"
-        }
-      );
+      execSync(`node browser.worker.js "${file}"`, {
+        stdio: "inherit"
+      });
+
     }
+
+    // =========================
+    // REMOVE REQUEST
+    // =========================
 
     if (fs.existsSync(requestPath)) {
 
       fs.unlinkSync(requestPath);
+
     }
+
+    // =========================
+    // PUSH RESULTS
+    // =========================
 
     gitSync();
 
@@ -130,20 +107,23 @@ async function processRequest(file) {
 
   } catch (err) {
 
-    console.error(
-      `worker failed for ${file}`
-    );
+    console.error(`worker failed for ${file}`);
 
     console.error(err.message);
+
   }
+
 }
+
+// =========================
+// MAIN
+// =========================
 
 async function main() {
 
   try {
 
-    const files = fs
-      .readdirSync(REQUEST_DIR)
+    const files = fs.readdirSync(REQUEST_DIR)
       .filter(f => f.endsWith(".json"))
       .sort();
 
@@ -157,31 +137,17 @@ async function main() {
     for (const file of files) {
 
       await processRequest(file);
+
     }
 
   } catch (err) {
 
-    console.error(
-      "dispatcher error:",
-      err.message
-    );
+    console.error("dispatcher error:", err.message);
+
+    process.exit(1);
+
   }
+
 }
 
-async function runForever() {
-
-  console.log(
-    "dispatcher started..."
-  );
-
-  while (true) {
-
-    gitPull();
-
-    await main();
-
-    await sleep(2000);
-  }
-}
-
-runForever();
+main();
