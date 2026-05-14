@@ -54,7 +54,7 @@ function cleanupResults(maxResults = 5) {
   }
 }
 
-async function waitForPageReady(page, timeout = 20000) {
+async function waitForPageReady(page, timeout = 15000) {
   const start = Date.now();
 
   try {
@@ -64,6 +64,7 @@ async function waitForPageReady(page, timeout = 20000) {
   while (Date.now() - start < timeout) {
     try {
       const bodyExists = await page.locator("body").count();
+
       if (bodyExists > 0) {
         return true;
       }
@@ -75,10 +76,22 @@ async function waitForPageReady(page, timeout = 20000) {
   return false;
 }
 
+async function waitAfterAction(page) {
+  try {
+    await page.waitForLoadState("networkidle", {
+      timeout: 3000
+    });
+  } catch (_) {}
+
+  await sleep(1000);
+}
+
 async function autoScroll(page) {
   try {
     await page.evaluate(async () => {
-      if (!document.body) return;
+      if (!document.body) {
+        return;
+      }
 
       await new Promise((resolve) => {
         let totalHeight = 0;
@@ -86,17 +99,22 @@ async function autoScroll(page) {
 
         const timer = setInterval(() => {
           try {
-            const scrollHeight = document.body.scrollHeight;
+            const scrollHeight = document.body
+              ? document.body.scrollHeight
+              : 0;
 
             window.scrollBy(0, distance);
+
             totalHeight += distance;
 
             if (totalHeight >= scrollHeight) {
               clearInterval(timer);
+
               window.scrollTo(0, 0);
+
               resolve();
             }
-          } catch (e) {
+          } catch (_) {
             clearInterval(timer);
             resolve();
           }
@@ -110,12 +128,17 @@ async function autoScroll(page) {
 
 async function processRequest(fileName) {
   const requestPath = path.join(REQUEST_DIR, fileName);
+
   const raw = fs.readFileSync(requestPath, "utf8");
+
   const request = JSON.parse(raw);
 
   const id = path.parse(fileName).name;
+
   const sessionId = request.sessionId || "default";
+
   const sessionPath = path.join(SESSION_DIR, sessionId);
+
   const statePath = path.join(sessionPath, "state.json");
 
   if (!fs.existsSync(sessionPath)) {
@@ -139,13 +162,19 @@ async function processRequest(fileName) {
   if (fs.existsSync(statePath)) {
     context = await browser.newContext({
       storageState: statePath,
-      viewport: { width: 1920, height: 1080 },
+      viewport: {
+        width: 1920,
+        height: 1080
+      },
       deviceScaleFactor: 1,
       isMobile: false
     });
   } else {
     context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
+      viewport: {
+        width: 1920,
+        height: 1080
+      },
       deviceScaleFactor: 1,
       isMobile: false
     });
@@ -165,10 +194,11 @@ async function processRequest(fileName) {
   };
 
   try {
-
     const action = request.action || "open";
+
     const targetUrl = request.url;
 
+    // فقط برای open
     if (action === "open") {
       if (!targetUrl) {
         throw new Error("Missing request.url for open action");
@@ -178,103 +208,91 @@ async function processRequest(fileName) {
         waitUntil: "domcontentloaded",
         timeout: 60000
       });
+
+      await waitAfterAction(page);
     }
 
+    // click واقعی بدون reload مصنوعی
     if (action === "click") {
-
-      if (request.url) {
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
+      if (typeof request.x !== "number" ||
+          typeof request.y !== "number") {
+        throw new Error("Missing click coordinates");
       }
 
-      await sleep(1500);
+      await Promise.allSettled([
+        page.waitForNavigation({
+          timeout: 3000
+        }),
 
-      if (request.selector) {
+        page.waitForLoadState("networkidle", {
+          timeout: 3000
+        }),
 
-        await page.waitForSelector(request.selector, { timeout: 10000 });
-        await page.click(request.selector);
+        page.mouse.click(request.x, request.y)
+      ]);
 
-      } else {
-
-        if (typeof request.x !== "number" || typeof request.y !== "number") {
-          throw new Error("Missing click coordinates");
-        }
-
-        await page.mouse.click(request.x, request.y);
-      }
-
-      await sleep(2500);
+      await waitAfterAction(page);
     }
 
+    // paste_text ساده و طبیعی
     if (action === "paste_text") {
+      const text = request.text || "";
 
-      if (request.url) {
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
-      }
+      // اگر input فوکوس نداشت
+      // مثل گوگل خودش input فعال را پیدا کن
+      const hasFocusedInput = await page.evaluate(() => {
+        const el = document.activeElement;
 
-      await sleep(1200);
-
-      if (!request.text) {
-        throw new Error("Missing text for paste_text action");
-      }
-
-      const selector = request.selector || 'input[name="identifier"]';
-
-      await page.waitForSelector(selector, { timeout: 10000 });
-
-      await page.evaluate(({ selector, value }) => {
-
-        const input = document.querySelector(selector);
-
-        if (!input) {
-          throw new Error("Input not found");
+        if (!el) {
+          return false;
         }
 
-        if (document.activeElement !== input) {
-          input.focus();
-        }
+        const tag = el.tagName.toLowerCase();
 
-        const setter =
-          Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype,
-            "value"
-          ).set;
-
-        setter.call(input, value);
-
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-
-      }, {
-        selector,
-        value: request.text
+        return (
+          tag === "input" ||
+          tag === "textarea" ||
+          el.isContentEditable
+        );
       });
 
-      await sleep(1200);
+      // fallback ساده
+      if (!hasFocusedInput) {
+        const input = page.locator(
+          'input, textarea, [contenteditable="true"]'
+        ).first();
+
+        if (await input.count()) {
+          await input.click();
+          await sleep(300);
+        }
+      }
+
+      // تایپ طبیعی
+      await page.keyboard.insertText(text);
+
+      await waitAfterAction(page);
     }
 
     const ready = await waitForPageReady(page, 15000);
 
     if (!ready) {
-      console.log("Body not fully ready, continuing with fallback...");
+      console.log("Body not fully ready, continuing...");
     }
 
-    await sleep(2000);
-
     try {
-      await page.locator("body").first().waitFor({
-        timeout: 5000,
-        state: "attached"
-      });
+      await page
+        .locator("body")
+        .first()
+        .waitFor({
+          timeout: 5000,
+          state: "attached"
+        });
     } catch (_) {}
 
     await autoScroll(page);
-    await sleep(1500);
+
+    await sleep(1000);
 
     try {
       result.title = await page.title();
@@ -317,7 +335,6 @@ async function processRequest(fileName) {
 }
 
 async function main() {
-
   const fileName = process.argv[2];
 
   if (!fileName) {
