@@ -1,11 +1,10 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
-import { chromium } from "playwright";
+const fs = require("fs");
+const path = require("path");
+const { chromium } = require("playwright");
 
 const REQUEST_DIR = "./request";
 const RESULT_DIR = "./result";
-const SESSION_DIR = "./sessions";
+const SESSIONS_DIR = "./sessions";
 
 if (!fs.existsSync(REQUEST_DIR)) {
   fs.mkdirSync(REQUEST_DIR, { recursive: true });
@@ -15,527 +14,383 @@ if (!fs.existsSync(RESULT_DIR)) {
   fs.mkdirSync(RESULT_DIR, { recursive: true });
 }
 
-if (!fs.existsSync(SESSION_DIR)) {
-  fs.mkdirSync(SESSION_DIR, { recursive: true });
+if (!fs.existsSync(SESSIONS_DIR)) {
+  fs.mkdirSync(SESSIONS_DIR, { recursive: true });
 }
 
 const sessions = new Map();
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function cleanupResults(maxResults = 5) {
-
-  const resultJsonFiles = fs.readdirSync(RESULT_DIR)
-    .filter(file =>
-      file.endsWith(".json") &&
-      !file.endsWith(".video.json")
-    )
-    .sort();
-
-  if (resultJsonFiles.length <= maxResults) {
-    return;
-  }
-
-  const filesToDelete = resultJsonFiles.slice(
-    0,
-    resultJsonFiles.length - maxResults
-  );
-
-  for (const file of filesToDelete) {
-
-    const id = path.parse(file).name;
-
-    const jsonPath =
-      path.join(RESULT_DIR, `${id}.json`);
-
-    const imagePath =
-      path.join(RESULT_DIR, `${id}.jpg`);
-
-    const videoPath =
-      path.join(RESULT_DIR, `${id}.video.json`);
-
-    if (fs.existsSync(jsonPath)) {
-      fs.unlinkSync(jsonPath);
-    }
-
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
-
-    if (fs.existsSync(videoPath)) {
-      fs.unlinkSync(videoPath);
-    }
-
-    console.log(`Deleted old result: ${id}`);
-  }
-}
-
-async function waitForPageReady(page, timeout = 20000) {
-
-  const start = Date.now();
-
+async function waitForPageReady(page) {
   try {
-
-    await page.waitForLoadState(
-      "domcontentloaded",
-      { timeout }
-    );
-
+    await page.waitForLoadState("domcontentloaded", {
+      timeout: 15000,
+    });
   } catch (_) {}
 
-  while (Date.now() - start < timeout) {
-
-    try {
-
-      const bodyExists =
-        await page.locator("body").count();
-
-      if (bodyExists > 0) {
-        return true;
-      }
-
-    } catch (_) {}
-
-    await sleep(300);
-  }
-
-  return false;
-}
-
-async function naturalMouseMove(page, targetX, targetY) {
-
-  const viewport = page.viewportSize();
-
-  const startX =
-    Math.floor(viewport.width / 2);
-
-  const startY =
-    Math.floor(viewport.height / 2);
-
-  const steps = 30;
-
-  for (let i = 0; i <= steps; i++) {
-
-    const progress = i / steps;
-
-    const currentX =
-      startX +
-      ((targetX - startX) * progress);
-
-    const currentY =
-      startY +
-      ((targetY - startY) * progress);
-
-    await page.mouse.move(
-      currentX,
-      currentY
-    );
-
-    await sleep(
-      5 + Math.random() * 15
-    );
-  }
-}
-
-async function performNaturalClick(page, x, y) {
-
-  await naturalMouseMove(page, x, y);
-
-  await sleep(
-    50 + Math.random() * 80
-  );
-
-  await page.mouse.down();
-
-  await sleep(
-    40 + Math.random() * 120
-  );
-
-  await page.mouse.up();
-}
-
-async function focusEditableElement(page) {
-
   try {
+    await page.waitForFunction(() => {
+      return !!document.body;
+    }, {
+      timeout: 10000,
+    });
+  } catch (_) {}
 
-    const locator =
-      page.locator(
-        "input, textarea, [contenteditable='true']"
-      ).last();
+  await page.waitForTimeout(1000);
+}
 
-    const count =
-      await locator.count();
+async function autoScroll(page) {
+  try {
+    await page.evaluate(async () => {
+      await new Promise((resolve) => {
+        let totalHeight = 0;
+        const distance = 500;
 
-    if (count > 0) {
+        const timer = setInterval(() => {
+          window.scrollBy(0, distance);
 
-      await locator.click({
-        timeout: 3000
+          totalHeight += distance;
+
+          if (
+            totalHeight >=
+            document.body.scrollHeight
+          ) {
+            clearInterval(timer);
+
+            window.scrollTo(0, 0);
+
+            resolve();
+          }
+        }, 100);
       });
-
-      return true;
-    }
-
-  } catch (_) {}
-
-  return false;
+    });
+  } catch (err) {
+    console.error("Auto scroll error:", err);
+  }
 }
 
-async function performNaturalPaste(page, text) {
-
-  await focusEditableElement(page);
-
-  await sleep(300);
-
-  await page.evaluate(async (clipboardText) => {
-
-    try {
-
-      await navigator.clipboard.writeText(
-        clipboardText
-      );
-
-    } catch (_) {}
-
-  }, text);
-
-  const modifier =
-    os.platform() === "darwin"
-      ? "Meta"
-      : "Control";
-
-  await sleep(200);
-
-  await page.keyboard.press(
-    `${modifier}+V`
-  );
-}
-
-async function getSession(sessionId) {
-
+async function getOrCreateSession(sessionId) {
   if (sessions.has(sessionId)) {
-
-    const existing =
-      sessions.get(sessionId);
+    const existing = sessions.get(sessionId);
 
     try {
-
-      await existing.page.title();
-
-      return existing;
-
-    } catch (_) {
-
-      sessions.delete(sessionId);
-    }
+      if (!existing.page.isClosed()) {
+        existing.lastUsed = Date.now();
+        return existing;
+      }
+    } catch (_) {}
   }
 
-  const sessionPath =
-    path.join(SESSION_DIR, sessionId);
-
-  const statePath =
-    path.join(sessionPath, "state.json");
+  const sessionPath = path.join(
+    SESSIONS_DIR,
+    sessionId
+  );
 
   if (!fs.existsSync(sessionPath)) {
-
     fs.mkdirSync(sessionPath, {
-      recursive: true
+      recursive: true,
     });
   }
 
-  const browser =
-    await chromium.launch({
+  const statePath = path.join(
+    sessionPath,
+    "state.json"
+  );
 
-      headless: false,
-
-      slowMo: 20,
-
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-      ]
-    });
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+    ],
+  });
 
   let context;
 
   if (fs.existsSync(statePath)) {
-
-    context =
-      await browser.newContext({
-
-        storageState: statePath,
-
-        viewport: {
-          width: 1920,
-          height: 1080
-        },
-
-        deviceScaleFactor: 1,
-
-        isMobile: false
-      });
-
+    context = await browser.newContext({
+      storageState: statePath,
+      viewport: {
+        width: 1920,
+        height: 1080,
+      },
+      deviceScaleFactor: 1,
+      isMobile: false,
+    });
   } else {
-
-    context =
-      await browser.newContext({
-
-        viewport: {
-          width: 1920,
-          height: 1080
-        },
-
-        deviceScaleFactor: 1,
-
-        isMobile: false
-      });
+    context = await browser.newContext({
+      viewport: {
+        width: 1920,
+        height: 1080,
+      },
+      deviceScaleFactor: 1,
+      isMobile: false,
+    });
   }
 
-  const page =
-    await context.newPage();
+  const page = await context.newPage();
 
   const session = {
     browser,
     context,
     page,
-    sessionPath,
     statePath,
-    lastX: null,
-    lastY: null
+    lastUsed: Date.now(),
   };
 
   sessions.set(sessionId, session);
 
-  console.log(
-    `Created persistent session: ${sessionId}`
-  );
-
   return session;
 }
 
+async function naturalClick(page, x, y) {
+  const offsetX =
+    x + Math.floor(Math.random() * 4) - 2;
+
+  const offsetY =
+    y + Math.floor(Math.random() * 4) - 2;
+
+  await page.mouse.move(offsetX, offsetY, {
+    steps: 12,
+  });
+
+  await page.waitForTimeout(
+    30 + Math.random() * 120
+  );
+
+  await page.mouse.down();
+
+  await page.waitForTimeout(
+    50 + Math.random() * 120
+  );
+
+  await page.mouse.up();
+}
+
+async function saveResult(id, result) {
+  const resultPath = path.join(
+    RESULT_DIR,
+    `${id}.json`
+  );
+
+  fs.writeFileSync(
+    resultPath,
+    JSON.stringify(result, null, 2)
+  );
+}
+
 async function processRequest(fileName) {
+  const requestPath = path.join(
+    REQUEST_DIR,
+    fileName
+  );
 
-  const requestPath =
-    path.join(REQUEST_DIR, fileName);
+  const raw = fs.readFileSync(
+    requestPath,
+    "utf8"
+  );
 
-  const raw =
-    fs.readFileSync(requestPath, "utf8");
+  const request = JSON.parse(raw);
 
-  const request =
-    JSON.parse(raw);
-
-  const id =
-    path.parse(fileName).name;
+  const id = path.basename(
+    fileName,
+    ".json"
+  );
 
   const sessionId =
     request.sessionId || "default";
 
   console.log(
-    `Processing browser request: ${id}`
+    `[worker] processing ${id} (${request.action})`
   );
 
-  const session =
-    await getSession(sessionId);
-
-  const page =
-    session.page;
-
-  const context =
-    session.context;
-
-  const result = {
-    id,
-    sessionId,
-    status: "success",
-    title: "",
-    url: "",
-    screenshot: `${id}.jpg`,
-    error: null,
-    createdAt: Date.now()
-  };
+  let session;
 
   try {
+    session = await getOrCreateSession(
+      sessionId
+    );
 
-    const action =
-      request.action || "open";
+    const {
+      page,
+      context,
+      statePath,
+    } = session;
 
-    if (action === "open") {
+    const result = {
+      id,
+      sessionId,
+      status: "success",
+      title: "",
+      url: "",
+      screenshot: `${id}.jpg`,
+      error: null,
+      createdAt: new Date().toISOString(),
+    };
 
+    if (request.action === "open") {
       if (!request.url) {
-
-        throw new Error(
-          "Missing request.url"
-        );
+        throw new Error("Missing URL");
       }
 
-      await page.goto(
-        request.url,
-        {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        }
-      );
+      await page.goto(request.url, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000,
+      });
 
-      await sleep(2000);
+      await waitForPageReady(page);
     }
 
-    if (action === "click") {
-
+    else if (request.action === "click") {
       if (
         typeof request.x !== "number" ||
         typeof request.y !== "number"
       ) {
-
         throw new Error(
-          "Missing click coordinates"
+          "Invalid click coordinates"
         );
       }
 
-      session.lastX = request.x;
-      session.lastY = request.y;
+      await waitForPageReady(page);
 
-      await sleep(300);
-
-      await performNaturalClick(
+      await naturalClick(
         page,
         request.x,
         request.y
       );
 
-      await sleep(2000);
+      await Promise.race([
+        page.waitForLoadState("networkidle", {
+          timeout: 7000,
+        }).catch(() => {}),
+
+        page.waitForTimeout(2500),
+      ]);
+
+      await waitForPageReady(page);
     }
 
-    if (action === "paste_text") {
-
-      const text =
-        request.text || "";
-
-      if (
-        session.lastX !== null &&
-        session.lastY !== null
-      ) {
-
-        try {
-
-          await page.mouse.click(
-            session.lastX,
-            session.lastY
-          );
-
-        } catch (_) {}
-      }
-
-      await sleep(300);
-
-      await performNaturalPaste(
-        page,
-        text
-      );
-
-      await sleep(1500);
-    }
-
-    await waitForPageReady(
-      page,
-      15000
-    );
+    await autoScroll(page);
 
     try {
-
-      result.title =
-        await page.title();
-
+      result.title = await page.title();
     } catch (_) {
-
       result.title = "";
     }
 
     try {
-
-      result.url =
-        await page.url();
-
+      result.url = page.url();
     } catch (_) {
-
-      result.url = "";
+      result.url = request.url || "";
     }
 
+    const screenshotPath = path.join(
+      RESULT_DIR,
+      `${id}.jpg`
+    );
+
     await page.screenshot({
-
-      path: path.join(
-        RESULT_DIR,
-        `${id}.jpg`
-      ),
-
+      path: screenshotPath,
       type: "jpeg",
-
-      quality: 80,
-
-      fullPage: false
+      quality: 60,
+      fullPage: true,
     });
 
     await context.storageState({
-      path: session.statePath
+      path: statePath,
     });
 
-  } catch (err) {
+    await saveResult(id, result);
 
-    result.status = "error";
-
-    result.error = err.message;
-  }
-
-  fs.writeFileSync(
-
-    path.join(
-      RESULT_DIR,
-      `${id}.json`
-    ),
-
-    JSON.stringify(
-      result,
-      null,
-      2
-    )
-  );
-
-  cleanupResults(5);
-
-  console.log(
-    `Finished browser request: ${id}`
-  );
-}
-
-async function main() {
-
-  const fileName =
-    process.argv[2];
-
-  if (!fileName) {
-
-    console.error(
-      "No request file provided"
+    console.log(
+      `[worker] completed ${id}`
     );
-
-    process.exit(1);
-  }
-
-  try {
-
-    await processRequest(fileName);
-
   } catch (err) {
+    console.error(err);
 
-    console.error(
-      "Browser worker failed:",
-      err.message
-    );
+    const errorResult = {
+      id,
+      sessionId,
+      status: "error",
+      title: "",
+      url: request.url || "",
+      screenshot: null,
+      error: err.message,
+      createdAt: new Date().toISOString(),
+    };
 
-    process.exit(1);
+    await saveResult(id, errorResult);
+  } finally {
+    try {
+      fs.unlinkSync(requestPath);
+    } catch (_) {}
   }
 }
 
-main();
+async function cleanupOldSessions() {
+  const now = Date.now();
+
+  for (const [sessionId, session] of sessions) {
+    const inactiveFor =
+      now - session.lastUsed;
+
+    if (inactiveFor > 1000 * 60 * 30) {
+      try {
+        await session.page.close();
+      } catch (_) {}
+
+      try {
+        await session.context.close();
+      } catch (_) {}
+
+      try {
+        await session.browser.close();
+      } catch (_) {}
+
+      sessions.delete(sessionId);
+
+      console.log(
+        `[worker] cleaned session ${sessionId}`
+      );
+    }
+  }
+}
+
+async function workerLoop() {
+  console.log("[worker] started");
+
+  while (true) {
+    try {
+      const files = fs
+        .readdirSync(REQUEST_DIR)
+        .filter((f) => f.endsWith(".json"));
+
+      for (const file of files) {
+        try {
+          await processRequest(file);
+        } catch (err) {
+          console.error(
+            `[worker] failed ${file}`,
+            err
+          );
+        }
+      }
+
+      await cleanupOldSessions();
+    } catch (err) {
+      console.error(
+        "[worker] loop error",
+        err
+      );
+    }
+
+    await sleep(1000);
+  }
+}
+
+workerLoop();
