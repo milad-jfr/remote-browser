@@ -1,10 +1,10 @@
 {
-  "id": "1778759043922",
+  "id": "1778759258766",
   "sessionId": "s1",
   "status": "success",
   "title": "Sign in - Google Accounts",
   "url": "https://accounts.google.com/v3/signin/identifier?continue=https://www.google.com/&dsh=S-97272833:1778758967721302&ec=futura_exp_og_so_72776762_e&flowEntry=ServiceLogin&flowName=WebLiteSignIn&hl=en&ifkv=AWa2PauAi2h1FSRINx7IOuYa1C66OUnx0Y-ow3AZ3VTmAoR-vW8gFYKWX1rP5LkVJndMTIwnqUugJA",
-  "screenshot": "1778759043922.jpg",
+  "screenshot": "1778759258766.jpg",
   "error": null,
-  "createdAt": 1778759066058
+  "createdAt": 1778759279485
 }

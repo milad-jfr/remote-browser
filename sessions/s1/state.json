@@ -753,16 +753,6 @@
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
-    },
-    {
-      "name": "__Secure-STRP",
-      "value": "AEEP7gK3QMH12QoCV-UNVUSY0x1R2qUDZoftCPKhgDrpkuS_AqvVVk1IPcDwDwoA7hC3U3KlFPmjwzGoFMJy9eZ6OTOTCtEkrg",
-      "domain": ".google.com",
-      "path": "/",
-      "expires": 1778759266.022226,
-      "httpOnly": false,
-      "secure": true,
-      "sameSite": "Strict"
     }
   ],
   "origins": [
