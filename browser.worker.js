@@ -19,6 +19,8 @@ if (!fs.existsSync(SESSION_DIR)) {
   fs.mkdirSync(SESSION_DIR, { recursive: true });
 }
 
+const sessions = new Map();
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -26,7 +28,10 @@ function sleep(ms) {
 function cleanupResults(maxResults = 5) {
 
   const resultJsonFiles = fs.readdirSync(RESULT_DIR)
-    .filter(file => file.endsWith(".json"))
+    .filter(file =>
+      file.endsWith(".json") &&
+      !file.endsWith(".video.json")
+    )
     .sort();
 
   if (resultJsonFiles.length <= maxResults) {
@@ -48,12 +53,19 @@ function cleanupResults(maxResults = 5) {
     const imagePath =
       path.join(RESULT_DIR, `${id}.jpg`);
 
+    const videoPath =
+      path.join(RESULT_DIR, `${id}.video.json`);
+
     if (fs.existsSync(jsonPath)) {
       fs.unlinkSync(jsonPath);
     }
 
     if (fs.existsSync(imagePath)) {
       fs.unlinkSync(imagePath);
+    }
+
+    if (fs.existsSync(videoPath)) {
+      fs.unlinkSync(videoPath);
     }
 
     console.log(`Deleted old result: ${id}`);
@@ -65,10 +77,12 @@ async function waitForPageReady(page, timeout = 20000) {
   const start = Date.now();
 
   try {
+
     await page.waitForLoadState(
       "domcontentloaded",
       { timeout }
     );
+
   } catch (_) {}
 
   while (Date.now() - start < timeout) {
@@ -88,66 +102,6 @@ async function waitForPageReady(page, timeout = 20000) {
   }
 
   return false;
-}
-
-async function autoScroll(page) {
-
-  try {
-
-    await page.evaluate(async () => {
-
-      if (!document.body) {
-        return;
-      }
-
-      await new Promise((resolve) => {
-
-        let totalHeight = 0;
-
-        const distance = 1000;
-
-        const timer = setInterval(() => {
-
-          try {
-
-            const scrollHeight =
-              document.body
-                ? document.body.scrollHeight
-                : 0;
-
-            window.scrollBy(0, distance);
-
-            totalHeight += distance;
-
-            if (totalHeight >= scrollHeight) {
-
-              clearInterval(timer);
-
-              window.scrollTo(0, 0);
-
-              resolve();
-            }
-
-          } catch (_) {
-
-            clearInterval(timer);
-
-            resolve();
-          }
-
-        }, 250);
-
-      });
-
-    });
-
-  } catch (err) {
-
-    console.log(
-      "autoScroll skipped:",
-      err.message
-    );
-  }
 }
 
 async function naturalMouseMove(page, targetX, targetY) {
@@ -202,7 +156,37 @@ async function performNaturalClick(page, x, y) {
   await page.mouse.up();
 }
 
+async function focusEditableElement(page) {
+
+  try {
+
+    const locator =
+      page.locator(
+        "input, textarea, [contenteditable='true']"
+      ).last();
+
+    const count =
+      await locator.count();
+
+    if (count > 0) {
+
+      await locator.click({
+        timeout: 3000
+      });
+
+      return true;
+    }
+
+  } catch (_) {}
+
+  return false;
+}
+
 async function performNaturalPaste(page, text) {
+
+  await focusEditableElement(page);
+
+  await sleep(300);
 
   await page.evaluate(async (clipboardText) => {
 
@@ -228,22 +212,24 @@ async function performNaturalPaste(page, text) {
   );
 }
 
-async function processRequest(fileName) {
+async function getSession(sessionId) {
 
-  const requestPath =
-    path.join(REQUEST_DIR, fileName);
+  if (sessions.has(sessionId)) {
 
-  const raw =
-    fs.readFileSync(requestPath, "utf8");
+    const existing =
+      sessions.get(sessionId);
 
-  const request =
-    JSON.parse(raw);
+    try {
 
-  const id =
-    path.parse(fileName).name;
+      await existing.page.title();
 
-  const sessionId =
-    request.sessionId || "default";
+      return existing;
+
+    } catch (_) {
+
+      sessions.delete(sessionId);
+    }
+  }
 
   const sessionPath =
     path.join(SESSION_DIR, sessionId);
@@ -252,14 +238,11 @@ async function processRequest(fileName) {
     path.join(sessionPath, "state.json");
 
   if (!fs.existsSync(sessionPath)) {
+
     fs.mkdirSync(sessionPath, {
       recursive: true
     });
   }
-
-  console.log(
-    `Processing browser request: ${id}`
-  );
 
   const browser =
     await chromium.launch({
@@ -314,6 +297,55 @@ async function processRequest(fileName) {
   const page =
     await context.newPage();
 
+  const session = {
+    browser,
+    context,
+    page,
+    sessionPath,
+    statePath,
+    lastX: null,
+    lastY: null
+  };
+
+  sessions.set(sessionId, session);
+
+  console.log(
+    `Created persistent session: ${sessionId}`
+  );
+
+  return session;
+}
+
+async function processRequest(fileName) {
+
+  const requestPath =
+    path.join(REQUEST_DIR, fileName);
+
+  const raw =
+    fs.readFileSync(requestPath, "utf8");
+
+  const request =
+    JSON.parse(raw);
+
+  const id =
+    path.parse(fileName).name;
+
+  const sessionId =
+    request.sessionId || "default";
+
+  console.log(
+    `Processing browser request: ${id}`
+  );
+
+  const session =
+    await getSession(sessionId);
+
+  const page =
+    session.page;
+
+  const context =
+    session.context;
+
   const result = {
     id,
     sessionId,
@@ -330,43 +362,42 @@ async function processRequest(fileName) {
     const action =
       request.action || "open";
 
-    const targetUrl =
-      request.url;
-
     if (action === "open") {
 
-      if (!targetUrl) {
+      if (!request.url) {
+
         throw new Error(
-          "Missing request.url for open action"
+          "Missing request.url"
         );
       }
 
-      await page.goto(targetUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: 60000
-      });
+      await page.goto(
+        request.url,
+        {
+          waitUntil: "domcontentloaded",
+          timeout: 60000
+        }
+      );
+
+      await sleep(2000);
     }
 
     if (action === "click") {
-
-      if (request.url) {
-
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
-      }
-
-      await sleep(1500);
 
       if (
         typeof request.x !== "number" ||
         typeof request.y !== "number"
       ) {
+
         throw new Error(
           "Missing click coordinates"
         );
       }
+
+      session.lastX = request.x;
+      session.lastY = request.y;
+
+      await sleep(300);
 
       await performNaturalClick(
         page,
@@ -374,23 +405,30 @@ async function processRequest(fileName) {
         request.y
       );
 
-      await sleep(2500);
+      await sleep(2000);
     }
 
     if (action === "paste_text") {
 
-      if (request.url) {
-
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
-      }
-
-      await sleep(1000);
-
       const text =
         request.text || "";
+
+      if (
+        session.lastX !== null &&
+        session.lastY !== null
+      ) {
+
+        try {
+
+          await page.mouse.click(
+            session.lastX,
+            session.lastY
+          );
+
+        } catch (_) {}
+      }
+
+      await sleep(300);
 
       await performNaturalPaste(
         page,
@@ -400,32 +438,10 @@ async function processRequest(fileName) {
       await sleep(1500);
     }
 
-    const ready =
-      await waitForPageReady(
-        page,
-        15000
-      );
-
-    if (!ready) {
-
-      console.log(
-        "Body not fully ready, continuing with fallback..."
-      );
-    }
-
-    await sleep(2000);
-
-    try {
-
-      await page
-        .locator("body")
-        .first()
-        .waitFor({
-          timeout: 5000,
-          state: "attached"
-        });
-
-    } catch (_) {}
+    await waitForPageReady(
+      page,
+      15000
+    );
 
     try {
 
@@ -444,8 +460,7 @@ async function processRequest(fileName) {
 
     } catch (_) {
 
-      result.url =
-        targetUrl || "";
+      result.url = "";
     }
 
     await page.screenshot({
@@ -463,7 +478,7 @@ async function processRequest(fileName) {
     });
 
     await context.storageState({
-      path: statePath
+      path: session.statePath
     });
 
   } catch (err) {
@@ -472,8 +487,6 @@ async function processRequest(fileName) {
 
     result.error = err.message;
   }
-
-  await browser.close();
 
   fs.writeFileSync(
 
