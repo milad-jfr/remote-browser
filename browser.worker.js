@@ -197,40 +197,26 @@ async function processRequest(fileName) {
 
       await sleep(1500);
 
-      if (typeof request.x !== "number" || typeof request.y !== "number") {
-        throw new Error("Missing click coordinates");
+      // اگر selector داده شده باشد، اولویت با selector
+      if (request.selector) {
+        await page.waitForSelector(request.selector, {
+          timeout: 10000
+        });
+
+        await page.click(request.selector);
+      } else {
+        if (typeof request.x !== "number" || typeof request.y !== "number") {
+          throw new Error("Missing click coordinates");
+        }
+
+        await page.mouse.click(request.x, request.y);
       }
 
-      await page.mouse.click(request.x, request.y);
       await sleep(2500);
     }
 
-    // ===== NEW ACTION: TYPE =====
-    if (action === "type") {
-
-      if (request.url) {
-        await page.goto(request.url, {
-          waitUntil: "domcontentloaded",
-          timeout: 60000
-        });
-      }
-
-      await sleep(1000);
-
-      if (!request.text) {
-        throw new Error("Missing text for type action");
-      }
-
-      await page.keyboard.type(request.text, {
-        delay: 20
-      });
-
-      await sleep(1500);
-    }
-
-    // ===== NEW ACTION: PASTE_TEXT =====
+    // ✅ اکشن جدید paste_text
     if (action === "paste_text") {
-
       if (request.url) {
         await page.goto(request.url, {
           waitUntil: "domcontentloaded",
@@ -244,12 +230,41 @@ async function processRequest(fileName) {
         throw new Error("Missing text for paste_text action");
       }
 
-      await page.keyboard.insertText(request.text);
+      let filled = false;
 
-      await sleep(1500);
+      // ✅ مخصوص Google Login
+      try {
+        await page.waitForSelector('input[name="identifier"]', {
+          timeout: 5000
+        });
+
+        await page.fill(
+          'input[name="identifier"]',
+          request.text
+        );
+
+        filled = true;
+
+        await sleep(800);
+      } catch (_) {}
+
+      // ✅ fallback عمومی
+      if (!filled) {
+        if (
+          typeof request.x === "number" &&
+          typeof request.y === "number"
+        ) {
+          await page.mouse.click(request.x, request.y);
+          await sleep(300);
+        }
+
+        await page.keyboard.insertText(request.text);
+        await sleep(800);
+      }
     }
 
     const ready = await waitForPageReady(page, 15000);
+
     if (!ready) {
       console.log("Body not fully ready, continuing with fallback...");
     }
@@ -258,10 +273,12 @@ async function processRequest(fileName) {
 
     // در بعضی سایت‌ها body visible نیست ولی صفحه همچنان قابل استفاده است
     try {
-      await page.locator("body").first().waitFor({
-        timeout: 5000,
-        state: "attached"
-      });
+      await page.locator("body")
+        .first()
+        .waitFor({
+          timeout: 5000,
+          state: "attached"
+        });
     } catch (_) {}
 
     await autoScroll(page);
